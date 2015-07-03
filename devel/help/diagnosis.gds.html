@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Diagnose the GDS file</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for diagnosis.gds {gdsfmt}"><tr><td>diagnosis.gds {gdsfmt}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Diagnose the GDS file</h2>
+
+<h3>Description</h3>
+
+<p>Diagnose the GDS file and block information
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+diagnosis.gds(gdsfile)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsfile</code></td>
+<td>
+<p>An object of class <code><a href="gds.class.html">gds.class</a></code>, a GDS file</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>A list with stream and chunk information.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://github.com/zhengxwen/gdsfmt">http://github.com/zhengxwen/gdsfmt</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="createfn.gds.html">createfn.gds</a></code>, <code><a href="openfn.gds.html">openfn.gds</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# cteate a GDS file
+f &lt;- createfn.gds("test.gds")
+L &lt;- -2500:2499
+
+# commom types
+
+add.gdsn(f, "label", NULL)
+add.gdsn(f, "int", 1:10000, compress="ZIP", closezip=TRUE)
+add.gdsn(f, "int.matrix", matrix(L, nrow=100, ncol=50))
+
+closefn.gds(f)
+
+
+###############################################################
+
+f &lt;- openfn.gds("test.gds", FALSE)
+
+diagnosis.gds(f)
+
+delete.gdsn(index.gdsn(f, "int"))
+
+diagnosis.gds(f)
+
+closefn.gds(f)
+
+
+###############################################################
+
+cleanup.gds("test.gds")
+
+f &lt;- openfn.gds("test.gds", FALSE)
+diagnosis.gds(f)
+closefn.gds(f)
+
+
+# delete the temporary file
+unlink("test.gds", force=TRUE)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Show the information of class &quot;gds.class&quot;</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for print.gds.class {gdsfmt}"><tr><td>print.gds.class {gdsfmt}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Show the information of class &quot;gds.class&quot;</h2>
+
+<h3>Description</h3>
+
+<p>Displays an object of class &quot;gds.class&quot;, a GDS file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+## S3 method for class 'gds.class'
+print(x, all=FALSE, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>x</code></td>
+<td>
+<p>an object of class <code><a href="gds.class.html">gds.class</a></code>, a GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>all</code></td>
+<td>
+<p>if FALSE, hide GDS nodes with an attribute &quot;R.invisible&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>the arguments passed to or from other methods</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>None.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://github.com/zhengxwen/gdsfmt">http://github.com/zhengxwen/gdsfmt</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="print.gdsn.class.html">print.gdsn.class</a></code></p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# cteate a GDS file
+f &lt;- createfn.gds("test.gds")
+
+add.gdsn(f, "int.matrix", matrix(1:50*100, nrow=100, ncol=50))
+
+print(f, all=TRUE)
+
+# close the GDS file
+closefn.gds(f)
+
+# delete the temporary file
+unlink("test.gds", force=TRUE)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.5 <a href="00Index.html">Index</a>]</div>
+</body></html>
