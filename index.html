@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>gdsfmt by zhengxwen</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">gdsfmt</h1>
+        <p class="header">R Interface to CoreArray Genomic Data Structure (GDS) Files</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/zhengxwen/gdsfmt/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/zhengxwen/gdsfmt/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/zhengxwen/gdsfmt">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/zhengxwen">zhengxwen</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a id="gdsfmt-r-interface-to-corearray-genomic-data-structure-gds-files" class="anchor" href="#gdsfmt-r-interface-to-corearray-genomic-data-structure-gds-files" aria-hidden="true"><span class="octicon octicon-link"></span></a>gdsfmt: R Interface to CoreArray Genomic Data Structure (GDS) files</h1>
+
+<p><img src="http://www.gnu.org/graphics/lgplv3-88x31.png" alt="LGPLv3">
+<a href="https://www.gnu.org/licenses/lgpl.html">LGPL-3</a></p>
+
+<p><a href="https://travis-ci.org/zhengxwen/gdsfmt"><img src="https://travis-ci.org/zhengxwen/gdsfmt.png" alt="Build Status"></a>
+<a href="https://ci.appveyor.com/project/zhengxwen/gdsfmt"><img src="https://ci.appveyor.com/api/projects/status/6ussam0n65o32r0j?svg=true" alt="Build status"></a>
+<a href="http://www.bioconductor.org/packages/devel/bioc/html/gdsfmt.html"><img src="http://www.bioconductor.org/shields/coverage/devel/gdsfmt.svg" alt="Build status"></a></p>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h2>
+
+<p>This package provides a high-level R interface to CoreArray Genomic Data Structure (GDS) data files, which are portable across platforms and include hierarchical structure to store multiple scalable array-oriented data sets with metadata information. It is suited for large-scale datasets, especially for data which are much larger than the available random-access memory. The gdsfmt package offers the efficient operations specifically designed for integers with less than 8 bits, since a single genetic/genomic variant, like single-nucleotide polymorphism, usually occupies fewer bits than a byte. Data compression and decompression are also supported with relatively efficient random access. It is allowed to read a GDS file in parallel with multiple R processes supported by the parallel package.</p>
+
+<h2>
+<a id="r-documents" class="anchor" href="#r-documents" aria-hidden="true"><span class="octicon octicon-link"></span></a>R Documents</h2>
+
+<p>Bioconductor Release Branch (<a href="http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html">v1.4.0</a>): <a href="./release/gdsfmt_vignette.html">Tutorial</a>, <a href="./release/help/00Index.html">Help Documents</a></p>
+
+<p>Bioconductor Develop Branch (<a href="http://www.bioconductor.org/packages/devel/bioc/html/gdsfmt.html">v1.5.--</a>): <a href="./devel/gdsfmt_vignette.html">Tutorial</a>, <a href="./devel/help/00Index.html">Help Documents</a></p>
+
+<h2>
+<a id="citation" class="anchor" href="#citation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Citation</h2>
+
+<p>Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. <em>Bioinformatics</em>. <a href="http://dx.doi.org/10.1093/bioinformatics/bts606">DOI: 10.1093/bioinformatics/bts606</a>.</p>
+
+<h2>
+<a id="copyright-notice" class="anchor" href="#copyright-notice" aria-hidden="true"><span class="octicon octicon-link"></span></a>Copyright Notice</h2>
+
+<ul>
+<li>CoreArray C++ library, LGPL-3 License, 2007-2015, Xiuwen Zheng</li>
+<li>zlib, zlib License, 1995-2015, Jean-loup Gailly and Mark Adler</li>
+<li>LZ4, BSD 2-clause License, 2011-2015, Yann Collet</li>
+<li><a href="https://github.com/zhengxwen/gdsfmt/blob/master/inst/COPYRIGHTS">README</a></li>
+</ul>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		          <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-64689611-3");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
