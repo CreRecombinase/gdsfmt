@@ -17,10 +17,10 @@ margins of a GDS matrix or array.
 <h3>Usage</h3>
 
 <pre>
-apply.gdsn(node, margin, FUN, selection=NULL, as.is=c("list", "none",
-    "integer", "double", "character", "logical", "raw", "gdsnode"),
-    var.index=c("none", "relative", "absolute"), target.node=NULL,
-    .useraw=FALSE, ...)
+apply.gdsn(node, margin, FUN, selection=NULL,
+    as.is=c("list", "none", "integer", "double", "character", "logical",
+    "raw", "gdsnode"), var.index=c("none", "relative", "absolute"),
+    target.node=NULL, .useraw=FALSE, .value=NULL, .substitute=NULL, ...)
 </pre>
 
 
@@ -75,6 +75,19 @@ when <code>as.is="gdsnode"</code>. See details</p>
 <p>use R RAW storage mode if integers can be stored in a byte,
 to reduce memory usage</p>
 </td></tr>
+<tr valign="top"><td><code>.value</code></td>
+<td>
+<p>a vector of values to be replaced in the original data array,
+or NULL for nothing</p>
+</td></tr>
+<tr valign="top"><td><code>.substitute</code></td>
+<td>
+<p>a vector of values after replacing, or NULL for
+nothing; <code>length(.substitute)</code> should be one or
+<code>length(.value)</code>; if <code>length(.substitute)</code> =
+<code>length(.value)</code>, it is a mapping from <code>.value</code> to
+<code>.substitute</code></p>
+</td></tr>
 <tr valign="top"><td><code>...</code></td>
 <td>
 <p>optional arguments to <code>FUN</code></p>
@@ -123,36 +136,44 @@ function should return a list with elements corresponding to
 # cteate a GDS file
 f &lt;- createfn.gds("test.gds")
 
-(n &lt;- add.gdsn(f, "matrix", val=matrix(1:(10*6), nrow=10)))
+(n1 &lt;- add.gdsn(f, "matrix", val=matrix(1:(10*6), nrow=10)))
 read.gdsn(index.gdsn(f, "matrix"))
 
-(n1 &lt;- add.gdsn(f, "string",
+(n2 &lt;- add.gdsn(f, "string",
     val=matrix(paste("L", 1:(10*6), sep=","), nrow=10)))
 read.gdsn(index.gdsn(f, "string"))
 
 # Apply functions over rows of matrix
-apply.gdsn(n, margin=1, FUN=function(x) print(x), as.is="none")
-apply.gdsn(n, margin=1,
+apply.gdsn(n1, margin=1, FUN=function(x) print(x), as.is="none")
+apply.gdsn(n1, margin=1,
     selection = list(rep(c(TRUE, FALSE), 5), rep(c(TRUE, FALSE), 3)),
     FUN=function(x) print(x), as.is="none")
-apply.gdsn(n, margin=1, var.index="relative",
+apply.gdsn(n1, margin=1, var.index="relative",
     selection = list(rep(c(TRUE, FALSE), 5), rep(c(TRUE, FALSE), 3)),
     FUN=function(i, x) { cat("index: ", i, ", ", sep=""); print(x) },
     as.is="none")
-apply.gdsn(n, margin=1, var.index="absolute",
+apply.gdsn(n1, margin=1, var.index="absolute",
     selection = list(rep(c(TRUE, FALSE), 5), rep(c(TRUE, FALSE), 3)),
     FUN=function(i, x) { cat("index: ", i, ", ", sep=""); print(x) },
     as.is="none")
-apply.gdsn(n1, margin=1, FUN=function(x) print(x), as.is="none")
+apply.gdsn(n2, margin=1, FUN=function(x) print(x), as.is="none")
+
 
 # Apply functions over columns of matrix
-apply.gdsn(n, margin=2, FUN=function(x) print(x), as.is="none")
-apply.gdsn(n, margin=2,
-    selection = list(rep(c(TRUE, FALSE), 5), rep(c(TRUE, FALSE), 3)),
-    FUN=function(x) print(x), as.is="none")
+apply.gdsn(n1, margin=2, FUN=function(x) print(x), as.is="none")
 apply.gdsn(n1, margin=2,
     selection = list(rep(c(TRUE, FALSE), 5), rep(c(TRUE, FALSE), 3)),
     FUN=function(x) print(x), as.is="none")
+apply.gdsn(n2, margin=2,
+    selection = list(rep(c(TRUE, FALSE), 5), rep(c(TRUE, FALSE), 3)),
+    FUN=function(x) print(x), as.is="none")
+
+
+apply.gdsn(n1, margin=1, FUN=function(x) print(x), as.is="none",
+    .value=16:40, .substitute=NA)
+apply.gdsn(n1, margin=2, FUN=function(x) print(x), as.is="none",
+    .value=16:40, .substitute=NA)
+
 
 # close
 closefn.gds(f)
@@ -167,21 +188,21 @@ closefn.gds(f)
 # cteate a GDS file
 f &lt;- createfn.gds("test.gds")
 
-(n1 &lt;- add.gdsn(f, "matrix", val=matrix(1:(10*6), nrow=10)))
+(n2 &lt;- add.gdsn(f, "matrix", val=matrix(1:(10*6), nrow=10)))
 
 (n2 &lt;- add.gdsn(f, "string",
     val=matrix(paste("L", 1:(10*6), sep=","), nrow=10)))
 read.gdsn(index.gdsn(f, "string"))
 
-n1.1 &lt;- add.gdsn(f, "transpose.matrix", storage="int", valdim=c(6,0))
+n2.1 &lt;- add.gdsn(f, "transpose.matrix", storage="int", valdim=c(6,0))
 n2.1 &lt;- add.gdsn(f, "transpose.string", storage="string", valdim=c(6,0))
 
 # Apply functions over rows of matrix
-apply.gdsn(n1, margin=1, FUN=`c`, as.is="gdsnode", target.node=n1.1)
+apply.gdsn(n2, margin=1, FUN=`c`, as.is="gdsnode", target.node=n2.1)
 
 # matrix transpose
-read.gdsn(n1)
-read.gdsn(n1.1)
+read.gdsn(n2)
+read.gdsn(n2.1)
 
 
 # Apply functions over rows of matrix
@@ -204,19 +225,19 @@ closefn.gds(f)
 # cteate a GDS file
 f &lt;- createfn.gds("test.gds")
 
-(n1 &lt;- add.gdsn(f, "matrix", val=matrix(1:(10*6), nrow=10)))
+(n2 &lt;- add.gdsn(f, "matrix", val=matrix(1:(10*6), nrow=10)))
 
-n1.1 &lt;- add.gdsn(f, "transpose.matrix", storage="int", valdim=c(6,0))
-n1.2 &lt;- add.gdsn(f, "n.matrix", storage="int", valdim=c(0))
+n2.1 &lt;- add.gdsn(f, "transpose.matrix", storage="int", valdim=c(6,0))
+n2.2 &lt;- add.gdsn(f, "n.matrix", storage="int", valdim=c(0))
 
 # Apply functions over rows of matrix
-apply.gdsn(n1, margin=1, FUN=function(x) list(x, x[1]),
-    as.is="gdsnode", target.node=list(n1.1, n1.2))
+apply.gdsn(n2, margin=1, FUN=function(x) list(x, x[1]),
+    as.is="gdsnode", target.node=list(n2.1, n2.2))
 
 # matrix transpose
-read.gdsn(n1)
-read.gdsn(n1.1)
-read.gdsn(n1.2)
+read.gdsn(n2)
+read.gdsn(n2.1)
+read.gdsn(n2.2)
 
 # close
 closefn.gds(f)
@@ -243,10 +264,17 @@ node.Z1 &lt;- add.gdsn(f, "Z1", Z1)
 node.Z2 &lt;- add.gdsn(f, "Z2", Z2)
 
 v &lt;- apply.gdsn(list(X=node.X, Y=node.Y, Z=node.Z1), margin=c(1, 1, 1),
-    FUN=function(x) { print(x) }, as.is="none")
+    FUN=print, as.is="none")
 
 v &lt;- apply.gdsn(list(X=node.X, Y=node.Y, Z=node.Z2), margin=c(2, 2, 1),
-    FUN=function(x) print(x))
+    FUN=print)
+
+v &lt;- apply.gdsn(list(X=node.X, Y=node.Y, Z=node.Z2), margin=c(2, 2, 1),
+    FUN=print, .value=35:45, .substitute=NA)
+
+v &lt;- apply.gdsn(list(X=node.X, Y=node.Y, Z=node.Z2), margin=c(2, 2, 1),
+    FUN=print, .value=35:45, .substitute=NA)
+
 
 
 # with selection
@@ -263,7 +291,7 @@ v &lt;- apply.gdsn(list(X=node.X, Y=node.Y, Z=node.Z2), margin=c(2, 2, 1),
     FUN=function(x) print(x))
 
 
-# close
+# close the GDS file
 closefn.gds(f)
 
 
@@ -271,5 +299,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.5 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
 </body></html>

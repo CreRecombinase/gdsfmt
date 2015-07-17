@@ -29,7 +29,8 @@ append.gdsn(node, val, check=TRUE)
 </td></tr>
 <tr valign="top"><td><code>val</code></td>
 <td>
-<p>new data to be appended</p>
+<p>R atomic data, like integer; or an object of class
+<code><a href="gdsn.class.html">gdsn.class</a></code></p>
 </td></tr>
 <tr valign="top"><td><code>check</code></td>
 <td>
@@ -107,7 +108,7 @@ append.gdsn(n, as.character(rep(NA, 25)))
 read.gdsn(n)
 
 
-# close the gds file
+# close the GDS file
 closefn.gds(f)
 
 
@@ -115,5 +116,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.5 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
 </body></html>

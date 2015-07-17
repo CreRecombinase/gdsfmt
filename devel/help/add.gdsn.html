@@ -34,9 +34,8 @@ add.gdsn(node, name, val=NULL, storage=storage.mode(val), valdim=NULL,
 </td></tr>
 <tr valign="top"><td><code>name</code></td>
 <td>
-<p>the variable name of the added node; if it is not specified,
-&ldquo;<code>Item</code> <code>N</code>&rdquo; is assigned to <code>name</code>, where <code>N</code>
-is the number of child nodes plus one</p>
+<p>the variable name; if it is not specified, a temporary name
+is assigned</p>
 </td></tr>
 <tr valign="top"><td><code>val</code></td>
 <td>
@@ -61,7 +60,9 @@ string (variable-length: &quot;string&quot;, &quot;string16&quot;, &quot;string3
 fixed-length: &quot;fstring&quot;, &quot;fstring16&quot;, &quot;fstring32&quot;).
 Or &quot;char&quot; (=&quot;int8&quot;), &quot;int&quot;/&quot;integer&quot; (=&quot;int32&quot;), &quot;float&quot; (=&quot;float32&quot;),
 &quot;double&quot; (=&quot;float64&quot;), &quot;character&quot; (=&quot;string&quot;),
-&quot;logical&quot;, &quot;list&quot;, &quot;factor&quot;, &quot;folder&quot;</p>
+&quot;logical&quot;, &quot;list&quot;, &quot;factor&quot;, &quot;folder&quot;;
+Or a <code><a href="gdsn.class.html">gdsn.class</a></code> object, the storage mode is set to be
+the same as the object specified by <code>storage</code>.</p>
 </td></tr>
 <tr valign="top"><td><code>valdim</code></td>
 <td>
@@ -267,6 +268,7 @@ f
 read.gdsn(index.gdsn(f, "double"))
 
 
+# close the GDS file
 closefn.gds(f)
 
 
@@ -274,5 +276,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.5 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
 </body></html>
