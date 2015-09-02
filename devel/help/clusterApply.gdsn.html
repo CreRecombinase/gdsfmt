@@ -161,7 +161,7 @@ closefn.gds(f)
 library(parallel)
 
 # Use option cl.core to choose an appropriate cluster size.
-cl &lt;- makeCluster(getOption("cl.cores", 2))
+cl &lt;- makeCluster(getOption("cl.cores", 2L))
 
 
 # Apply functions over rows or columns of matrix
@@ -198,5 +198,5 @@ stopCluster(cl)
 unlink(c("test1.gds", "test2.gds"), force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.12 <a href="00Index.html">Index</a>]</div>
 </body></html>

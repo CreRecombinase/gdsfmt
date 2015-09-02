@@ -62,12 +62,9 @@ nothing; <code>length(.substitute)</code> should be one or
 
 <h3>Details</h3>
 
-<p>It is suggested to use logical vectors to extract data from the GDS node
-instead of numeric vectors, if the dimension is preserved as data order saved
-in the GDS file. If <code>sel</code> is a list of numeric vectors, the internal
-method converts the numeric vectors to logical vectors first, extract data
-with logical vectors, and then call <code><a href="../../base/html/Extract.html">[</a></code> to reorder or
-expend data.
+<p>If <code>sel</code> is a list of numeric vectors, the internal method converts
+the numeric vectors to logical vectors first, extract data with logical
+vectors, and then call <code><a href="../../base/html/Extract.html">[</a></code> to reorder or expend data.
 </p>
 
 
@@ -141,5 +138,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.12 <a href="00Index.html">Index</a>]</div>
 </body></html>

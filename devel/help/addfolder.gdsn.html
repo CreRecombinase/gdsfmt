@@ -31,9 +31,8 @@ addfolder.gdsn(node, name, type=c("directory", "virtual"), gds.fn="",
 </td></tr>
 <tr valign="top"><td><code>name</code></td>
 <td>
-<p>the variable name of the added node; if it is not specified,
-&ldquo;<code>Item</code> <code>N</code>&rdquo; is assigned to <code>name</code>, where <code>N</code>
-is the number of child nodes plus one</p>
+<p>the variable name; if it is not specified, a temporary name
+is assigned</p>
 </td></tr>
 <tr valign="top"><td><code>type</code></td>
 <td>
@@ -115,12 +114,12 @@ closefn.gds(f2)
 
 # open the second file (writable)
 (f &lt;- openfn.gds("test2.gds", FALSE))
-# +     [  ]
-# |--+ int  { Int32 100 }
+# +    [  ]
+# |--+ int   { Int32 100, 400 bytes }
 # |--+ virtual_folder   [ --&gt; test1.gds ]
-# |  |--+ NULL      
+# |  |--+ NULL       
 # |  |--+ dir   [  ]
-# |  |--+ int   { Int32 100 }
+# |  |--+ int   { Int32 100, 400 bytes }
 
 read.gdsn(index.gdsn(f, "int"))
 read.gdsn(index.gdsn(f, "virtual_folder/int"))
@@ -144,17 +143,20 @@ closefn.gds(f)
 
 file.remove("test1.gds")
 
-## Not run: (f &lt;- openfn.gds("test2.gds"))
-# +     [  ]
-# |--+ int  { Int32 100 }
+## Not run: 
+(f &lt;- openfn.gds("test2.gds"))
+# +    [  ]
+# |--+ int   { Int32 100, 400 bytes }
 # |--+ virtual_folder   [ -X- test1.gds ]
 
-## Not run: closefn.gds(f)
+closefn.gds(f)
+
+## End(Not run)
 
 
 # delete the temporary file
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.12 <a href="00Index.html">Index</a>]</div>
 </body></html>

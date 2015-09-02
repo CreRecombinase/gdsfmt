@@ -1,15 +1,16 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Show the information of class &quot;gds.class&quot;</title>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Show the information of class &quot;gds.class&quot; and &quot;gdsn.class&quot;</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="R.css" />
 </head><body>
 
 <table width="100%" summary="page for print.gds.class {gdsfmt}"><tr><td>print.gds.class {gdsfmt}</td><td style="text-align: right;">R Documentation</td></tr></table>
 
-<h2>Show the information of class &quot;gds.class&quot;</h2>
+<h2>Show the information of class &quot;gds.class&quot; and &quot;gdsn.class&quot;</h2>
 
 <h3>Description</h3>
 
-<p>Displays an object of class &quot;gds.class&quot;, a GDS file.
+<p>Displays the contents of &quot;gds.class&quot; (a GDS file) and &quot;gdsn.class&quot;
+(a GDS node).
 </p>
 
 
@@ -17,7 +18,10 @@
 
 <pre>
 ## S3 method for class 'gds.class'
-print(x, all=FALSE, ...)
+print(x, ...)
+## S3 method for class 'gdsn.class'
+print(x, expand=TRUE, all=FALSE, attribute=FALSE,
+    attribute.trim=TRUE, ...)
 </pre>
 
 
@@ -26,11 +30,25 @@ print(x, all=FALSE, ...)
 <table summary="R argblock">
 <tr valign="top"><td><code>x</code></td>
 <td>
-<p>an object of class <code><a href="gds.class.html">gds.class</a></code>, a GDS file</p>
+<p>an object of class <code><a href="gds.class.html">gds.class</a></code>, a GDS file; or
+<code><a href="gdsn.class.html">gdsn.class</a></code>, a GDS node</p>
+</td></tr>
+<tr valign="top"><td><code>expand</code></td>
+<td>
+<p>whether enumerate all of child nodes</p>
 </td></tr>
 <tr valign="top"><td><code>all</code></td>
 <td>
 <p>if FALSE, hide GDS nodes with an attribute &quot;R.invisible&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>attribute</code></td>
+<td>
+<p>if TRUE, show the attribute(s)</p>
+</td></tr>
+<tr valign="top"><td><code>attribute.trim</code></td>
+<td>
+<p>if TRUE, trim the attribute information if it is too
+long</p>
 </td></tr>
 <tr valign="top"><td><code>...</code></td>
 <td>
@@ -57,7 +75,7 @@ print(x, all=FALSE, ...)
 
 <h3>See Also</h3>
 
-<p><code><a href="print.gdsn.class.html">print.gdsn.class</a></code></p>
+<p><code><a href="print.gds.class.html">print.gdsn.class</a></code></p>
 
 
 <h3>Examples</h3>
@@ -67,8 +85,11 @@ print(x, all=FALSE, ...)
 f &lt;- createfn.gds("test.gds")
 
 add.gdsn(f, "int.matrix", matrix(1:50*100, nrow=100, ncol=50))
+put.attr.gdsn(index.gdsn(f, "int.matrix"), "int", 1:10)
 
 print(f, all=TRUE)
+print(f, all=TRUE, attribute=TRUE)
+print(f, all=TRUE, attribute=TRUE, attribute.trim=FALSE)
 
 # close the GDS file
 closefn.gds(f)
@@ -77,5 +98,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.12 <a href="00Index.html">Index</a>]</div>
 </body></html>

@@ -93,8 +93,8 @@ index.gdsn(f, index=c(1, 1))
 index.gdsn(f, index=c("list", "z"))
 
 ## Not run: 
-# stop here, return an error
 index.gdsn(f, "list/x/z")
+# Error in index.gdsn(f, "list/x/z") : Invalid path "list/x/z"!
 
 ## End(Not run)
 
@@ -109,5 +109,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.8 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.12 <a href="00Index.html">Index</a>]</div>
 </body></html>
