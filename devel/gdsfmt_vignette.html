@@ -134,7 +134,7 @@ add.gdsn(folder, &quot;int&quot;, val=1:1000)
 add.gdsn(folder, &quot;double&quot;, val=seq(1, 100, 0.4), visible=FALSE)</code></pre>
 <p>Users can display the file content by typing <code>gfile</code> or <code>print(gfile)</code>:</p>
 <pre class="r"><code>gfile</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpENYv0u/Rbuild3f1a46b144c0/gdsfmt/vignettes/test.gds (1.1 KB)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (1.2 KB)
 ## +    [  ]
 ## |--+ int   { Int32 10000, 40.0 KB }
 ## |--+ double   { Float64 2498, 20.0 KB }
@@ -150,7 +150,7 @@ add.gdsn(folder, &quot;double&quot;, val=seq(1, 100, 0.4), visible=FALSE)</code>
 ## |  |--+ int   { Int32 1000, 4.0 KB }</code></pre>
 <p><code>print(gfile, ...)</code> has an argument <em>all</em> to control the display of file content. By default, <em>all=FALSE</em>; if <em>all=TRUE</em>, to show all contents in the file including hidden variables or folders. The GDS variables <em>logical</em>, <em>factor</em> and <em>folder/double</em> are hidden.</p>
 <pre class="r"><code>print(gfile, all=TRUE)</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpENYv0u/Rbuild3f1a46b144c0/gdsfmt/vignettes/test.gds (66.1 KB)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (68.9 KB)
 ## +    [  ]
 ## |--+ int   { Int32 10000, 40.0 KB }
 ## |--+ double   { Float64 2498, 20.0 KB }
@@ -361,7 +361,7 @@ n1 &lt;- add.gdsn(gfile, &quot;I1&quot;, val=1:100)
 n2 &lt;- add.gdsn(gfile, &quot;I2&quot;, val=matrix(1:20, nrow=4))
 
 gfile</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpENYv0u/Rbuild3f1a46b144c0/gdsfmt/vignettes/test.gds (224 bytes)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (224 bytes)
 ## +    [  ]
 ## |--+ I1   { Int32 100, 400 bytes }
 ## |--+ I2   { Int32 4x5, 80 bytes }</code></pre>
@@ -382,16 +382,16 @@ scan(&quot;text.txt&quot;)</code></pre>
 <p>The arguments <em>file</em> and <em>fill</em> are defined in the function <code>cat()</code>.</p>
 <p>If the GDS variable is a matrix:</p>
 <pre class="r"><code>fout &lt;- file(&quot;text.txt&quot;, &quot;wt&quot;)
-apply.gdsn(n2, 1, FUN=cat, as.is=&quot;none&quot;, file=fout, fill=32768)
+apply.gdsn(n2, 1, FUN=cat, as.is=&quot;none&quot;, file=fout, fill=4194304)
 close(fout)
 
 readLines(&quot;text.txt&quot;)</code></pre>
 <pre><code>## [1] &quot;1 5 9 13 17&quot;  &quot;2 6 10 14 18&quot; &quot;3 7 11 15 19&quot; &quot;4 8 12 16 20&quot;</code></pre>
-<p>The number 32768 is the maximum number of columns on a line used in printing vectors.</p>
+<p>The number 4194304 is the maximum number of columns on a line used in printing vectors.</p>
 </div>
 <div id="transpose-a-matrix" class="section level2">
 <h2>Transpose a matrix</h2>
-<p><code>apply.gdsn()</code> allows that the data returned from the user-defined function <em>FUN</em> is directly written to a target GDS node <em>target.node</em>, when <em>as.is=“gdsnode”</em> and <em>target.node</em> are both given. Little <em>c</em> in R is a generic function which combines its arguments, and it passes all data to the target GDS node in the following code:</p>
+<p><code>permdim.gdsn()</code> can be used to transpose an array by permuting its dimensions. Or <code>apply.gdsn()</code> allows that the data returned from the user-defined function <em>FUN</em> is directly written to a target GDS node <em>target.node</em>, when <em>as.is=“gdsnode”</em> and <em>target.node</em> are both given. Little <em>c</em> in R is a generic function which combines its arguments, and it passes all data to the target GDS node in the following code:</p>
 <pre class="r"><code>n.t &lt;- add.gdsn(gfile, &quot;transpose&quot;, storage=&quot;int&quot;, valdim=c(5,0))
 
 # apply the function over rows of matrix
@@ -425,7 +425,7 @@ add.gdsn(gfile, &quot;N5&quot;, val=val, storage=&quot;packedreal16&quot;, scale
 add.gdsn(gfile, &quot;N6&quot;, val=val, storage=&quot;packedreal16&quot;, scale=0.001, offset=0, compress=&quot;ZIP&quot;, closezip=TRUE)
 
 gfile</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpENYv0u/Rbuild3f1a46b144c0/gdsfmt/vignettes/test.gds (793.7 KB)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (793.7 KB)
 ## +    [  ]
 ## |--+ N1   { Float64 50000, 400.0 KB }
 ## |--+ N2   { Float64 50000 ZIP(24.76%), 99.0 KB }
@@ -517,9 +517,9 @@ closefn.gds(gfile)</code></pre>
 </ul>
 <pre class="r"><code>set.seed(100)
 # 10,000,000 random 0,1 sequence of 32-bit integers
-v &lt;- sample.int(2, 10*1000*1000, replace=TRUE) - 1L
-table(v)</code></pre>
-<pre><code>## v
+val &lt;- sample.int(2, 10*1000*1000, replace=TRUE) - 1L
+table(val)</code></pre>
+<pre><code>## val
 ##       0       1 
 ## 4999138 5000862</code></pre>
 <pre class="r"><code># cteate a GDS file
@@ -530,7 +530,7 @@ compression &lt;- c(&quot;&quot;, &quot;ZIP.max&quot;, &quot;ZIP_RA.max:16K&quot
 
 # save
 for (i in 1:length(compression))
-    print(add.gdsn(f, paste0(&quot;I&quot;, i), val=v, compress=compression[i], closezip=TRUE))
+    print(add.gdsn(f, paste0(&quot;I&quot;, i), val=val, compress=compression[i], closezip=TRUE))
 
 # close the file
 closefn.gds(f)</code></pre>
@@ -545,18 +545,22 @@ f &lt;- openfn.gds(&quot;test.gds&quot;)
 
 # 10,000 random positions
 set.seed(1000)
-idx &lt;- sample.int(length(v), 10000)
+idx &lt;- sample.int(length(val), 10000)
 
-# for-loop each compression method
-for (i in 1:length(n))
+# enumerate each compression method
+dat &lt;- vector(&quot;list&quot;, length(compression))
+for (i in seq_len(length(compression)))
 {
     cat(&quot;Compression:&quot;, compression[i], &quot;\n&quot;)
+    n &lt;- index.gdsn(f, paste0(&quot;I&quot;, i))
     print(system.time({
-        vv &lt;- rep.int(0, length(idx))
-        for (k in 1:length(idx))
-            vv[k] &lt;- read.gdsn(n[[i]], start=idx[k], count=1)
+        dat[[i]] &lt;- sapply(idx, FUN=function(k) read.gdsn(n, start=k, count=1L))
     }))
 }
+
+# check
+for (i in seq_len(length(compression)))
+    stopifnot(identical(dat[[i]], dat[[1L]]))
 
 # close the file
 closefn.gds(f)</code></pre>
@@ -573,20 +577,28 @@ closefn.gds(f)</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
+<td align="left">Data Size (MB)</td>
+<td align="left">40.0</td>
+<td align="left">2.0</td>
+<td align="left">2.2</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+</tr>
+<tr class="even">
 <td align="left">Compression Percent</td>
 <td align="left">100%</td>
 <td align="left">5.08%</td>
 <td align="left">5.42%</td>
-<td align="left">6.98%</td>
-<td align="left">7.33%</td>
+<td align="left">7.39%</td>
+<td align="left">7.60%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Reading Time (second)</td>
-<td align="left">0.35</td>
-<td align="left">203.99</td>
-<td align="left">3.54</td>
-<td align="left">90.03</td>
-<td align="left">1.47</td>
+<td align="left">0.38</td>
+<td align="left">193.43</td>
+<td align="left">3.40</td>
+<td align="left">77.46</td>
+<td align="left">1.42</td>
 </tr>
 </tbody>
 </table>
@@ -612,9 +624,9 @@ closefn.gds(f)</code></pre>
 <div id="session-information" class="section level1">
 <h1>Session Information</h1>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.2.2 (2015-08-14)
+<pre><code>## R Under development (unstable) (2015-10-03 r69455)
 ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
-## Running under: OS X 10.10.5 (Yosemite)
+## Running under: OS X 10.11.1 (El Capitan)
 ## 
 ## locale:
 ## [1] C/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
@@ -623,13 +635,13 @@ closefn.gds(f)</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] gdsfmt_1.5.12
+## [1] gdsfmt_1.7.1
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] magrittr_1.5    formatR_1.2     htmltools_0.2.6 tools_3.2.2    
+##  [1] magrittr_1.5    formatR_1.2.1   htmltools_0.2.6 tools_3.3.0    
 ##  [5] yaml_2.1.13     memoise_0.2.1   crayon_1.3.1    stringi_0.5-5  
-##  [9] rmarkdown_0.7   knitr_1.10.5    stringr_1.0.0   digest_0.6.8   
-## [13] evaluate_0.7</code></pre>
+##  [9] rmarkdown_0.8.1 knitr_1.11      stringr_1.0.0   digest_0.6.8   
+## [13] evaluate_0.8</code></pre>
 </div>
 
 

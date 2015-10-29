@@ -1,15 +1,15 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Delete an attribute</title>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Delete attribute(s)</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="R.css" />
 </head><body>
 
 <table width="100%" summary="page for delete.attr.gdsn {gdsfmt}"><tr><td>delete.attr.gdsn {gdsfmt}</td><td style="text-align: right;">R Documentation</td></tr></table>
 
-<h2>Delete an attribute</h2>
+<h2>Delete attribute(s)</h2>
 
 <h3>Description</h3>
 
-<p>Remove an attribute of a GDS node.
+<p>Remove the attribute(s) of a GDS node.
 </p>
 
 
@@ -29,15 +29,9 @@ delete.attr.gdsn(node, name)
 </td></tr>
 <tr valign="top"><td><code>name</code></td>
 <td>
-<p>the name of an attribute</p>
+<p>the name(s) of an attribute</p>
 </td></tr>
 </table>
-
-
-<h3>Details</h3>
-
-<p>If there is not an attribute with <code>name</code>, a warning will be given.
-</p>
 
 
 <h3>Value</h3>
@@ -77,7 +71,7 @@ put.attr.gdsn(node, "bool", c(TRUE, TRUE, FALSE))
 f
 get.attr.gdsn(node)
 
-delete.attr.gdsn(node, "one.value")
+delete.attr.gdsn(node, c("one.value", "bool"))
 get.attr.gdsn(node)
 
 # close the GDS file
@@ -88,5 +82,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.5.12 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.7.1 <a href="00Index.html">Index</a>]</div>
 </body></html>
