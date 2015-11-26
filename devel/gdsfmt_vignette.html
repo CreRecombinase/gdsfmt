@@ -63,7 +63,7 @@ img {
 <div id="header">
 <h1 class="title">R Interface to CoreArray Genomic Data Structure (GDS) Files</h1>
 <h4 class="author"><em>Xiuwen Zheng</em></h4>
-<h4 class="date"><em>Jul 5, 2015</em></h4>
+<h4 class="date"><em>Nov 6, 2015</em></h4>
 </div>
 
 <div id="TOC">
@@ -89,6 +89,7 @@ img {
 <li><a href="#transpose-a-matrix">Transpose a matrix</a></li>
 <li><a href="#floating-point-number-vs.packed-real-number">Floating-point number vs. packed real number</a></li>
 <li><a href="#limited-random-access-reading-on-compressed-data">Limited random-access reading on compressed data</a></li>
+<li><a href="#checksum-for-data-integrity">Checksum for Data Integrity</a></li>
 </ul></li>
 <li><a href="#stylish-terminal-output-in-r">Stylish Terminal Output in R</a></li>
 <li><a href="#session-information">Session Information</a></li>
@@ -134,7 +135,7 @@ add.gdsn(folder, &quot;int&quot;, val=1:1000)
 add.gdsn(folder, &quot;double&quot;, val=seq(1, 100, 0.4), visible=FALSE)</code></pre>
 <p>Users can display the file content by typing <code>gfile</code> or <code>print(gfile)</code>:</p>
 <pre class="r"><code>gfile</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (1.2 KB)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpjlC0De/Rbuild180d8160511cc/gdsfmt/vignettes/test.gds (1.2 KB)
 ## +    [  ]
 ## |--+ int   { Int32 10000, 40.0 KB }
 ## |--+ double   { Float64 2498, 20.0 KB }
@@ -150,7 +151,7 @@ add.gdsn(folder, &quot;double&quot;, val=seq(1, 100, 0.4), visible=FALSE)</code>
 ## |  |--+ int   { Int32 1000, 4.0 KB }</code></pre>
 <p><code>print(gfile, ...)</code> has an argument <em>all</em> to control the display of file content. By default, <em>all=FALSE</em>; if <em>all=TRUE</em>, to show all contents in the file including hidden variables or folders. The GDS variables <em>logical</em>, <em>factor</em> and <em>folder/double</em> are hidden.</p>
 <pre class="r"><code>print(gfile, all=TRUE)</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (68.9 KB)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpjlC0De/Rbuild180d8160511cc/gdsfmt/vignettes/test.gds (68.9 KB)
 ## +    [  ]
 ## |--+ int   { Int32 10000, 40.0 KB }
 ## |--+ double   { Float64 2498, 20.0 KB }
@@ -266,7 +267,7 @@ read.gdsn(n)</code></pre>
 </div>
 <div id="create-a-large-scale-data-set" class="section level3">
 <h3>Create a large-scale data set</h3>
-<p>When the size of dataset is larger than the system memory, users can not add a GDS variable via <code>add.gdsn()</code> directly. If the dimension is pre-defined, users can specify the dimension size in <code>add.gdsn()</code> to allocate data space. Then call <code>write.gdsn()</code> to write a small subset of data space.</p>
+<p><strong>1)</strong> When the size of dataset is larger than the system memory, users can not add a GDS variable via <code>add.gdsn()</code> directly. If the dimension is pre-defined, users can specify the dimension size in <code>add.gdsn()</code> to allocate data space. Then call <code>write.gdsn()</code> to write a small subset of data space.</p>
 <pre class="r"><code>(n2 &lt;- add.gdsn(gfile, &quot;I2&quot;, storage=&quot;int&quot;, valdim=c(100, 2000)))</code></pre>
 <pre><code>## + I2   { Int32 100x2000, 800.0 KB }</code></pre>
 <pre class="r"><code>for (i in 1:2000)
@@ -274,7 +275,7 @@ read.gdsn(n)</code></pre>
     write.gdsn(n2, seq.int(100*(i-1)+1, length.out=100),
         start=c(1,i), count=c(-1,1))
 }</code></pre>
-<p>Or call <code>append.gdsn()</code> to append new data when the initial size is ZERO. If a compression algorithm is specified in <code>add.gdsn()</code> (e.g., <em>compress=“ZIP”</em>), users should call <code>append.gdsn()</code> instead of <code>write.gdsn()</code>, since data has to be compressed sequentially.</p>
+<p><strong>2)</strong> Call <code>append.gdsn()</code> to append new data when the initial size is ZERO. If a compression algorithm is specified in <code>add.gdsn()</code> (e.g., <em>compress=“ZIP”</em>), users should call <code>append.gdsn()</code> instead of <code>write.gdsn()</code>, since data has to be compressed sequentially.</p>
 <pre class="r"><code>(n3 &lt;- add.gdsn(gfile, &quot;I3&quot;, storage=&quot;int&quot;, valdim=c(100, 0), compress=&quot;ZIP&quot;))</code></pre>
 <pre><code>## + I3   { Int32 100x0 ZIP, 0 byte }</code></pre>
 <pre class="r"><code>for (i in 1:2000)
@@ -361,7 +362,7 @@ n1 &lt;- add.gdsn(gfile, &quot;I1&quot;, val=1:100)
 n2 &lt;- add.gdsn(gfile, &quot;I2&quot;, val=matrix(1:20, nrow=4))
 
 gfile</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (224 bytes)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpjlC0De/Rbuild180d8160511cc/gdsfmt/vignettes/test.gds (224 bytes)
 ## +    [  ]
 ## |--+ I1   { Int32 100, 400 bytes }
 ## |--+ I2   { Int32 4x5, 80 bytes }</code></pre>
@@ -425,7 +426,7 @@ add.gdsn(gfile, &quot;N5&quot;, val=val, storage=&quot;packedreal16&quot;, scale
 add.gdsn(gfile, &quot;N6&quot;, val=val, storage=&quot;packedreal16&quot;, scale=0.001, offset=0, compress=&quot;ZIP&quot;, closezip=TRUE)
 
 gfile</code></pre>
-<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpDLl4QN/Rbuild77f86c31291e/gdsfmt/vignettes/test.gds (793.7 KB)
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpjlC0De/Rbuild180d8160511cc/gdsfmt/vignettes/test.gds (793.7 KB)
 ## +    [  ]
 ## |--+ N1   { Float64 50000, 400.0 KB }
 ## |--+ N2   { Float64 50000 ZIP(24.76%), 99.0 KB }
@@ -603,6 +604,31 @@ closefn.gds(f)</code></pre>
 </tbody>
 </table>
 </div>
+<div id="checksum-for-data-integrity" class="section level2">
+<h2>Checksum for Data Integrity</h2>
+<p>Users can create hash function digests (e.g., md5, sha1, sha256, sha384, sha512) to verify data integrity, and md5 is the default digest algorithm. For example,</p>
+<pre class="r"><code># create a GDS file
+f &lt;- createfn.gds(&quot;test.gds&quot;)
+n &lt;- add.gdsn(f, &quot;raw&quot;, rnorm(1115), compress=&quot;ZIP&quot;, closezip=TRUE)
+digest.gdsn(n, action=&quot;add&quot;)</code></pre>
+<pre><code>##                                md5 
+## &quot;ff6dca074ed058cc6b64481bc3019f27&quot;</code></pre>
+<pre class="r"><code>print(f, attribute=TRUE)</code></pre>
+<pre><code>## File: /private/var/folders/72/lxb63fw16ks35bzsk8gfb7b40000gn/T/RtmpjlC0De/Rbuild180d8160511cc/gdsfmt/vignettes/test.gds (8.8 KB)
+## +    [  ]
+## |--+ raw   { Float64 1115 ZIP.default(96.32%), 8.6 KB } *&lt; md5: ff6dca074ed058cc6b64481bc3019f27</code></pre>
+<pre class="r"><code>closefn.gds(f)</code></pre>
+<p>Reopen the file and verify data integrity:</p>
+<pre class="r"><code>f &lt;- openfn.gds(&quot;test.gds&quot;)
+n &lt;- index.gdsn(f, &quot;raw&quot;)
+
+get.attr.gdsn(n)$md5</code></pre>
+<pre><code>## [1] &quot;ff6dca074ed058cc6b64481bc3019f27&quot;</code></pre>
+<pre class="r"><code>digest.gdsn(n, action=&quot;verify&quot;)</code></pre>
+<pre><code>##    md5   sha1 sha256 sha384 sha512 
+##   TRUE     NA     NA     NA     NA</code></pre>
+<pre class="r"><code>closefn.gds(f)</code></pre>
+</div>
 </div>
 <div id="stylish-terminal-output-in-r" class="section level1">
 <h1>Stylish Terminal Output in R</h1>
@@ -624,7 +650,7 @@ closefn.gds(f)</code></pre>
 <div id="session-information" class="section level1">
 <h1>Session Information</h1>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R Under development (unstable) (2015-10-03 r69455)
+<pre><code>## R version 3.2.2 (2015-08-14)
 ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
 ## Running under: OS X 10.11.1 (El Capitan)
 ## 
@@ -635,11 +661,11 @@ closefn.gds(f)</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] gdsfmt_1.7.1
+## [1] gdsfmt_1.7.3
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] magrittr_1.5    formatR_1.2.1   htmltools_0.2.6 tools_3.3.0    
-##  [5] yaml_2.1.13     memoise_0.2.1   crayon_1.3.1    stringi_0.5-5  
+##  [1] magrittr_1.5    formatR_1.2.1   htmltools_0.2.6 tools_3.2.2    
+##  [5] yaml_2.1.13     memoise_0.2.1   crayon_1.3.1    stringi_1.0-1  
 ##  [9] rmarkdown_0.8.1 knitr_1.11      stringr_1.0.0   digest_0.6.8   
 ## [13] evaluate_0.8</code></pre>
 </div>
