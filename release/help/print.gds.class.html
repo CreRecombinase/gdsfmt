@@ -22,6 +22,8 @@ print(x, ...)
 ## S3 method for class 'gdsn.class'
 print(x, expand=TRUE, all=FALSE, attribute=FALSE,
     attribute.trim=FALSE, ...)
+## S4 method for signature 'gdsn.class'
+show(object)
 </pre>
 
 
@@ -32,6 +34,13 @@ print(x, expand=TRUE, all=FALSE, attribute=FALSE,
 <td>
 <p>an object of class <code><a href="gds.class.html">gds.class</a></code>, a GDS file; or
 <code><a href="gdsn.class.html">gdsn.class</a></code>, a GDS node</p>
+</td></tr>
+<tr valign="top"><td><code>object</code></td>
+<td>
+<p>an object of class <code><a href="gds.class.html">gds.class</a></code>, the number of
+elements in the preview can be specified via the option
+<code>getOption("gds.preview.num", 6L)</code>, while <code>6L</code> is the default
+value</p>
 </td></tr>
 <tr valign="top"><td><code>expand</code></td>
 <td>
@@ -73,23 +82,22 @@ long</p>
 <p><a href="http://github.com/zhengxwen/gdsfmt">http://github.com/zhengxwen/gdsfmt</a></p>
 
 
-<h3>See Also</h3>
-
-<p><code><a href="print.gds.class.html">print.gdsn.class</a></code></p>
-
-
 <h3>Examples</h3>
 
 <pre>
 # cteate a GDS file
 f &lt;- createfn.gds("test.gds")
 
-add.gdsn(f, "int.matrix", matrix(1:50*100, nrow=100, ncol=50))
+add.gdsn(f, "int", 1:100)
+add.gdsn(f, "int.matrix", matrix(1:(50*100), nrow=100, ncol=50))
 put.attr.gdsn(index.gdsn(f, "int.matrix"), "int", 1:10)
 
 print(f, all=TRUE)
 print(f, all=TRUE, attribute=TRUE)
 print(f, all=TRUE, attribute=TRUE, attribute.trim=FALSE)
+
+show(index.gdsn(f, "int"))
+show(index.gdsn(f, "int.matrix"))
 
 # close the GDS file
 closefn.gds(f)
@@ -98,5 +106,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.6.2 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.8.0 <a href="00Index.html">Index</a>]</div>
 </body></html>
