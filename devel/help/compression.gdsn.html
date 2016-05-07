@@ -30,12 +30,15 @@ compression.gdsn(node, compress=c("", "ZIP", "ZIP_RA", "LZ4", "LZ4_RA"))
 <tr valign="top"><td><code>compress</code></td>
 <td>
 <p>the compression method can be &quot;&quot; (no compression),
-&quot;ZIP&quot;, &quot;ZIP.fast&quot;, &quot;ZIP.default&quot;, &quot;ZIP.max&quot; or &quot;ZIP.none&quot; (original
-zlib); &quot;ZIP_RA&quot;, &quot;ZIP_RA.fast&quot;, &quot;ZIP_RA.default&quot;, &quot;ZIP_RA.max&quot; or
+&quot;ZIP&quot;, &quot;ZIP.fast&quot;, &quot;ZIP.def&quot;, &quot;ZIP.max&quot; or &quot;ZIP.none&quot; (original
+zlib); &quot;ZIP_RA&quot;, &quot;ZIP_RA.fast&quot;, &quot;ZIP_RA.def&quot;, &quot;ZIP_RA.max&quot; or
 &quot;ZIP_RA.none&quot; (zlib with efficient random access); &quot;LZ4&quot;, &quot;LZ4.none&quot;,
 &quot;LZ4.fast&quot;, &quot;LZ4.hc&quot; or &quot;LZ4.max&quot; (LZ4 compression/decompression
 library); &quot;LZ4_RA&quot;, &quot;LZ4_RA.none&quot;, &quot;LZ4_RA.fast&quot;, &quot;LZ4_RA.hc&quot; or
-&quot;LZ4_RA.max&quot; (with efficient random access). See details</p>
+&quot;LZ4_RA.max&quot; (with efficient random access). &quot;LZMA&quot;, &quot;LZMA.fast&quot;,
+&quot;LZMA.def&quot;, &quot;LZMA.max&quot;, &quot;LZMA_RA&quot;, &quot;LZMA_RA.fast&quot;, &quot;LZMA_RA.def&quot;,
+&quot;LZMA_RA.max&quot; (lzma compression/decompression algorithm).
+See details</p>
 </td></tr>
 </table>
 
@@ -44,17 +47,16 @@ library); &quot;LZ4_RA&quot;, &quot;LZ4_RA.none&quot;, &quot;LZ4_RA.fast&quot;, 
 
 <p>Z compression algorithm (<a href="http://www.zlib.net/">http://www.zlib.net/</a>) can be used to
 deflate the data stored in the GDS file. &quot;ZIP&quot; option is equivalent
-to &quot;ZIP.default&quot;. &quot;ZIP.fast&quot;, &quot;ZIP.default&quot; and &quot;ZIP.max&quot; correspond
-to different compression levels.
+to &quot;ZIP.def&quot;. &quot;ZIP.fast&quot;, &quot;ZIP.def&quot; and &quot;ZIP.max&quot; correspond to
+different compression levels.
 </p>
-<p>To support efficient random access of Z stream, &quot;ZIP_RA&quot;,
-&quot;ZIP_RA.fast&quot;, &quot;ZIP_RA.default&quot;, &quot;ZIP_RA.max&quot; or &quot;ZIP_RA.none&quot; should
-be specified. &quot;ZIP_RA&quot; option is equivalent to &quot;ZIP_RA.default:256K&quot;.
-The block size can be specified by following colon, and &quot;16K&quot;, &quot;32K&quot;,
-&quot;64K&quot;, &quot;128K&quot;, &quot;256K&quot;, &quot;512K&quot;, &quot;1M&quot;, &quot;2M&quot;, &quot;4M&quot; and &quot;8M&quot; are allowed,
-like &quot;ZIP_RA:64K&quot;. The compression algorithm tries to keep each
-independent compressed data block to be about of the specified block
-size, like 64K.
+<p>To support efficient random access of Z stream, &quot;ZIP_RA&quot;, &quot;ZIP_RA.fast&quot;,
+&quot;ZIP_RA.def&quot; or &quot;ZIP_RA.max&quot; should be specified. &quot;ZIP_RA&quot; option is
+equivalent to &quot;ZIP_RA.def:256K&quot;. The block size can be specified by
+following colon, and &quot;16K&quot;, &quot;32K&quot;, &quot;64K&quot;, &quot;128K&quot;, &quot;256K&quot;, &quot;512K&quot;, &quot;1M&quot;,
+&quot;2M&quot;, &quot;4M&quot; and &quot;8M&quot; are allowed, like &quot;ZIP_RA:64K&quot;. The compression
+algorithm tries to keep each independent compressed data block to be
+about of the specified block size, like 64K.
 </p>
 <p>LZ4 fast lossless compression algorithm is allowed when
 <code>compress="LZ4"</code> (<a href="http://code.google.com/p/lz4/">http://code.google.com/p/lz4/</a>). Three
@@ -65,13 +67,20 @@ and &quot;64K&quot;, &quot;256K&quot;, &quot;1M&quot; and &quot;4M&quot; are all
 format. &quot;LZ4&quot; is equivalent to &quot;LZ4.hc:256K&quot;.
 </p>
 <p>To support efficient random access of LZ4 stream, &quot;LZ4_RA&quot;,
-&quot;LZ4_RA.fast&quot;, &quot;LZ4_RA.hc&quot;, &quot;ZIP_RA.max&quot; or &quot;LZ4_RA.none&quot; should
-be specified. &quot;LZ4_RA&quot; option is equivalent to &quot;LZ4_RA.hc:256K&quot;.
-The block size can be specified by following colon, and &quot;16K&quot;, &quot;32K&quot;,
-&quot;64K&quot;, &quot;128K&quot;, &quot;256K&quot;, &quot;512K&quot;, &quot;1M&quot;, &quot;2M&quot;, &quot;4M&quot; and &quot;8M&quot; are allowed,
-like &quot;LZ4_RA:64K&quot;. The compression algorithm tries to keep each
-independent compressed data block to be about of the specified block
-size, like 64K.
+&quot;LZ4_RA.fast&quot;, &quot;LZ4_RA.hc&quot; or &quot;ZIP_RA.max&quot; should be specified.
+&quot;LZ4_RA&quot; option is equivalent to &quot;LZ4_RA.hc:256K&quot;. The block size can
+be specified by following colon, and &quot;16K&quot;, &quot;32K&quot;, &quot;64K&quot;, &quot;128K&quot;,
+&quot;256K&quot;, &quot;512K&quot;, &quot;1M&quot;, &quot;2M&quot;, &quot;4M&quot; and &quot;8M&quot; are allowed, like
+&quot;LZ4_RA:64K&quot;. The compression algorithm tries to keep each independent
+compressed data block to be about of the specified block size, like 64K.
+</p>
+<p>LZMA compression algorithm (<a href="http://tukaani.org/xz/">http://tukaani.org/xz/</a>) is available
+since gdsfmt_v1.7.18, which has a higher compression ratio than ZIP
+algorithm. &quot;LZMA&quot;, &quot;LZMA.fast&quot;, &quot;LZMA.def&quot; and &quot;LZMA.max&quot; available.
+To support efficient random access of LZMA stream, &quot;LZMA_RA&quot;,
+&quot;LZMA_RA.fast&quot;, &quot;LZMA_RA.def&quot; and &quot;LZMA_RA.max&quot; can be used. The block
+size can be specified by following colon. &quot;LZMA_RA&quot; is equivalent to
+&quot;LZMA_RA.def:256K&quot;.
 </p>
 
 
@@ -117,5 +126,5 @@ closefn.gds(f)
 unlink("test.gds", force=TRUE)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.7.3 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>gdsfmt</em> version 1.9.0 <a href="00Index.html">Index</a>]</div>
 </body></html>
