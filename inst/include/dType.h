@@ -45,10 +45,10 @@
 #endif
 #include <stdint.h>
 
-#ifdef COREARRAY_POSIX
-#   // need 'ssize_t'
-#   include <unistd.h>
-#endif
+//#ifdef COREARRAY_POSIX
+//#   // need 'ssize_t'
+#include <unistd.h>
+//#endif
 
 #ifdef __cplusplus
 #   // to define UTF8String, UTF16String and UTF32String
