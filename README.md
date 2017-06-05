@@ -19,17 +19,18 @@ This package provides a high-level R interface to CoreArray Genomic Data Structu
 
 ## Bioconductor:
 
-Release Version: v1.10.0
+Release Version: v1.12.0
 
 [http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html](http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html)
 
 [Help Documents](http://zhengxwen.github.io/gdsfmt/release/help/00Index.html)
 
-Development Version: v1.11.1
+Development Version: v1.13.0
 
 [http://www.bioconductor.org/packages/devel/bioc/html/gdsfmt.html](http://www.bioconductor.org/packages/devel/bioc/html/gdsfmt.html)
 
 [Help Documents](http://zhengxwen.github.io/gdsfmt/devel/help/00Index.html)
+
 
 ## Package Vignettes
 
@@ -41,6 +42,8 @@ Development Version: v1.11.1
 ## Citation
 
 Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. *Bioinformatics*. [DOI: 10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
+
+Zheng X, Gogarten S, Lawrence M, Stilp A, Conomos M, Weir BS, Laurie C, Levine D (2017). SeqArray -- A storage-efficient high-performance data format for WGS variant calls. *Bioinformatics*. [DOI: 10.1093/bioinformatics/btx145](http://dx.doi.org/10.1093/bioinformatics/btx145).
 
 
 ## Package Maintainer
@@ -71,15 +74,13 @@ install_github("zhengxwen/gdsfmt")
 The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](http://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
 
 
-
 ## Copyright Notice
 
-* CoreArray C++ library, LGPL-3 License, 2007-2016, Xiuwen Zheng
-* zlib, zlib License, 1995-2016, Jean-loup Gailly and Mark Adler
-* LZ4, BSD 2-clause License, 2011-2016, Yann Collet
-* liblzma, public domain, 2005-2016, Lasse Collin and other xz contributors
+* CoreArray C++ library, LGPL-3 License, 2007-2017, Xiuwen Zheng
+* zlib, zlib License, 1995-2013, Jean-loup Gailly and Mark Adler
+* LZ4, BSD 2-clause License, 2011-2017, Yann Collet
+* liblzma, public domain, 2005-2017, Lasse Collin and other xz contributors
 * [README](./inst/COPYRIGHTS)
-
 
 
 ## GDS Command-line Tools
@@ -138,7 +139,6 @@ chmod +x diffgds
 ```
 
 
-
 ## Examples
 
 ```R
@@ -188,3 +188,10 @@ File: test.gds (1.1K)
    |--+ int   { Int32 1000, 3.9K }
    \--+ double   { Float64 248, 1.9K }
 ```
+
+
+## Also See
+
+[pygds](https://github.com/CoreArray/pygds): Python interface to CoreArray Genomic Data Structure (GDS) files
+
+[jugds](https://github.com/CoreArray/jugds.jl): Julia interface to CoreArray Genomic Data Structure (GDS) files

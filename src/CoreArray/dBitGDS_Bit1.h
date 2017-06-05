@@ -8,7 +8,7 @@
 //
 // dBitGDS_Bit1.h: Bit operators and classes of GDS format for Bit1
 //
-// Copyright (C) 2007-2016    Xiuwen Zheng
+// Copyright (C) 2007-2017    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,7 +29,7 @@
  *	\file     dBitGDS_Bit1.h
  *	\author   Xiuwen Zheng [zhengx@u.washington.edu]
  *	\version  1.0
- *	\date     2007 - 2016
+ *	\date     2007 - 2017
  *	\brief    Bit operators and classes of GDS format for Bit1
  *	\details
 **/
@@ -518,7 +518,7 @@ namespace CoreArray
 			C_UInt8 Buffer[MEMORY_BUFFER_SIZE] COREARRAY_SIMD_ATTR_ALIGN;
 			while (n >= 8)
 			{
-				size_t nn = n >> 3;
+				ssize_t nn = n >> 3;
 				if (nn > MEMORY_BUFFER_SIZE) nn = MEMORY_BUFFER_SIZE;
 				p = BIT1_CONV<MEM_TYPE>::Encode(p, Buffer, nn);
 				I.Allocator->WriteData(Buffer, nn);

@@ -8,7 +8,7 @@
 //
 // gdsfmt.cpp: R Interface to CoreArray Genomic Data Structure (GDS) Files
 //
-// Copyright (C) 2011-2016    Xiuwen Zheng
+// Copyright (C) 2011-2017    Xiuwen Zheng
 //
 // gdsfmt is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License Version 3 as
@@ -36,7 +36,7 @@
 
 namespace gdsfmt
 {
-	extern PdGDSFile GDSFMT_GDS_Files[];
+	extern PdGDSFile PKG_GDS_Files[];
 	extern int GetFileIndex(PdGDSFile file, bool throw_error=true);
 
 
@@ -295,9 +295,9 @@ COREARRAY_DLL_EXPORT SEXP gdsCreateGDS(SEXP FileName, SEXP AllowDup)
 			UTF8String FName = UTF8Text(fn);
 			for (int i=0; i < GDSFMT_MAX_NUM_GDS_FILES; i++)
 			{
-				if (GDSFMT_GDS_Files[i])
+				if (PKG_GDS_Files[i])
 				{
-					if (GDSFMT_GDS_Files[i]->FileName() == FName)
+					if (PKG_GDS_Files[i]->FileName() == FName)
 					{
 						throw ErrGDSFmt(
 							"The file '%s' has been created or opened.", fn);
@@ -353,9 +353,9 @@ COREARRAY_DLL_EXPORT SEXP gdsOpenGDS(SEXP FileName, SEXP ReadOnly,
 			UTF8String FName = UTF8Text(fn);
 			for (int i=0; i < GDSFMT_MAX_NUM_GDS_FILES; i++)
 			{
-				if (GDSFMT_GDS_Files[i])
+				if (PKG_GDS_Files[i])
 				{
-					if (GDSFMT_GDS_Files[i]->FileName() == FName)
+					if (PKG_GDS_Files[i]->FileName() == FName)
 					{
 						throw ErrGDSFmt(
 							"The file '%s' has been created or opened.", fn);
@@ -454,7 +454,7 @@ COREARRAY_DLL_EXPORT SEXP gdsGetConnection()
 		int FileCnt = 0;
 		for (int i=0; i < GDSFMT_MAX_NUM_GDS_FILES; i++)
 		{
-			if (GDSFMT_GDS_Files[i])
+			if (PKG_GDS_Files[i])
 				FileCnt ++;
 		}
 
@@ -465,7 +465,7 @@ COREARRAY_DLL_EXPORT SEXP gdsGetConnection()
 		FileCnt = 0;
 		for (int i=0; i < GDSFMT_MAX_NUM_GDS_FILES; i++)
 		{
-			PdGDSFile file = GDSFMT_GDS_Files[i];
+			PdGDSFile file = PKG_GDS_Files[i];
 			if (file)
 			{
 				SEXP handle;
@@ -660,16 +660,20 @@ COREARRAY_DLL_EXPORT SEXP gdsDiagInfo2(SEXP Node)
 					dynamic_cast<CdZDecoder_RA*>(s)->GetBlockInfo(
 						RA_RawSize, RA_CmpSize);
 					nRA = 1;
+			#ifndef COREARRAY_NO_LZ4
 				} else if (dynamic_cast<CdLZ4Decoder_RA*>(s))
 				{
 					dynamic_cast<CdLZ4Decoder_RA*>(s)->GetBlockInfo(
 						RA_RawSize, RA_CmpSize);
 					nRA = 1;
+			#endif
+			#ifndef COREARRAY_NO_LZMA
 				} else if (dynamic_cast<CdXZDecoder_RA*>(s))
 				{
 					dynamic_cast<CdXZDecoder_RA*>(s)->GetBlockInfo(
 						RA_RawSize, RA_CmpSize);
 					nRA = 1;
+			#endif
 				}
 			}
 		}

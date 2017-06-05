@@ -1,10 +1,24 @@
-CHANGES IN VERSION 1.11.0-1.11.2
+CHANGES IN VERSION 1.12.0
 -------------------------
+
+UTILITIES
+
+    o update liblzma to v5.2.3
+
+    o update lz4 to v1.7.5
+
+    o a new citation
+
+
+CHANGES IN VERSION 1.10.1
+-------------------------
+
+NEW FEATURES
 
     o new data types (variable-length encoding of signed and unsigned integers)
 
 
-CHANGES IN VERSION 1.10.0-1.10.1
+CHANGES IN VERSION 1.10.0
 -------------------------
 
     o the version number was bumped for the Bioconductor release version 3.4
@@ -22,9 +36,6 @@ NEW FEATURES
 
     o SIMD optimization for 1-bit and 2-bit array encode/decode (e.g., decode,
       RAW output: +20% for 2-bit, +50% for 1-bit)
-
-BUG FIXES
-
 
 
 CHANGES IN VERSION 1.7.18-1.7.22

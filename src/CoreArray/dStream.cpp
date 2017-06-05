@@ -8,7 +8,7 @@
 //
 // dStream.cpp: Stream classes and functions
 //
-// Copyright (C) 2007-2016    Xiuwen Zheng
+// Copyright (C) 2007-2017    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -1474,6 +1474,8 @@ EZLibError::EZLibError(int Code): ErrRecodeStream()
 // The classes of LZ4 stream
 // =====================================================================
 
+#ifndef COREARRAY_NO_LZ4
+
 //   64KB,    256KB,         1MB,         4MB
 static const ssize_t LZ4ChunkSize[4] =
 	{ 64*1024, 256*1024, 1*1024*1024, 4*1024*1024 };
@@ -1506,8 +1508,8 @@ CdLZ4Encoder::CdLZ4Encoder(CdStream &Dest, CdRecodeStream::TLevel level,
 	memset((void*)&lz4_pref, 0, sizeof(lz4_pref));
 	lz4_pref.compressionLevel = LZ4DeflateLevel[level];
 	lz4_pref.frameInfo.blockSizeID = LZ4FrameInfoBlockSize[chunk];
-	lz4_pref.frameInfo.blockMode = blockLinked;
-	lz4_pref.frameInfo.contentChecksumFlag = contentChecksumEnabled;
+	lz4_pref.frameInfo.blockMode = LZ4F_blockLinked;
+	lz4_pref.frameInfo.contentChecksumFlag = LZ4F_contentChecksumEnabled;
 
 	lz4_context = NULL;
 	LZ4F_errorCode_t err = LZ4F_createCompressionContext(&lz4_context, LZ4F_VERSION);
@@ -1908,8 +1910,9 @@ void CdLZ4Encoder_RA::Compressing(int bufsize)
 		break;
 
 	case clFast:
-		cmpBytes = LZ4_compress_continue((LZ4_stream_t*)fLZ4Ptr,
-			fRawBuffer[_IdxRaw], LZ4Buffer+2, bufsize);
+		cmpBytes = LZ4_compress_fast_continue((LZ4_stream_t*)fLZ4Ptr,
+			fRawBuffer[_IdxRaw], LZ4Buffer+2, bufsize,
+			LZ4_compressBound(bufsize), 1);
 		if (cmpBytes <= 0)
 			throw ELZ4Error(ErrLZ4Compressing);
 		LZ4Buffer[0] = cmpBytes & 0xFF;
@@ -1919,8 +1922,9 @@ void CdLZ4Encoder_RA::Compressing(int bufsize)
 		break;
 
 	case clDefault: case clMax:
-		cmpBytes = LZ4_compressHC_continue((LZ4_streamHC_t*)fLZ4Ptr,
-			fRawBuffer[_IdxRaw], LZ4Buffer+2, bufsize);
+		cmpBytes = LZ4_compress_HC_continue((LZ4_streamHC_t*)fLZ4Ptr,
+			fRawBuffer[_IdxRaw], LZ4Buffer+2, bufsize,
+			LZ4_compressBound(bufsize));
 		if (cmpBytes <= 0)
 			throw ELZ4Error(ErrLZ4Compressing);
 		LZ4Buffer[0] = cmpBytes & 0xFF;
@@ -2176,10 +2180,14 @@ void CdLZ4Decoder_RA::Reset()
 	fCurPosition = fCB_UZStart;
 }
 
+#endif
+
 
 
 // =====================================================================
 // The classes of xz/lzma stream
+
+#ifndef COREARRAY_NO_LZMA
 
 static const char *ErrXZDeflateInvalid =
 	"Invalid xz deflate Stream operation '%s'!";
@@ -2756,6 +2764,7 @@ void CdXZDecoder_RA::Reset()
 	fCurPosition = fCB_UZStart;
 }
 
+#endif
 
 
 

@@ -8,7 +8,7 @@
 //
 // dStream.h: Stream classes and functions
 //
-// Copyright (C) 2007-2016    Xiuwen Zheng
+// Copyright (C) 2007-2017    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,7 +29,7 @@
  *	\file     dStream.h
  *	\author   Xiuwen Zheng [zhengx@u.washington.edu]
  *	\version  1.0
- *	\date     2007 - 2016
+ *	\date     2007 - 2017
  *	\brief    Stream classes and functions
  *	\details
 **/
@@ -41,15 +41,27 @@
 #include "dSerial.h"
 
 // zlib library
-#include "../ZLIB/zlib.h"
+#ifdef COREARRAY_USE_ZLIB_EXT
+#       include <zlib.h>
+#   else
+#       include "../ZLIB/zlib.h"
+#endif
 
 // LZ4 library
-#include "../LZ4/lz4.h"
-#include "../LZ4/lz4hc.h"
-#include "../LZ4/lz4frame.h"
+#ifndef COREARRAY_NO_LZ4
+#   include "../LZ4/lz4.h"
+#   include "../LZ4/lz4hc.h"
+#   include "../LZ4/lz4frame.h"
+#endif
 
 // lzma library
-#include "../XZ/api/lzma.h"
+#ifndef COREARRAY_NO_LZMA
+#   ifdef COREARRAY_USE_LZMA_EXT
+#       include <lzma.h>
+#   else
+#       include "../XZ/api/lzma.h"
+#   endif
+#endif
 
 
 #include <cstring>
@@ -562,6 +574,8 @@ namespace CoreArray
 	// The classes of LZ4 stream
 	// =====================================================================
 
+#ifndef COREARRAY_NO_LZ4
+
 	/**
 	 *  The wrapper of LZ4 algorithm (http://code.google.com/p/lz4),
 	 *  real-time data compression/decompression.
@@ -741,11 +755,14 @@ namespace CoreArray
 			{ fMessage = LZ4F_getErrorName(err); }
 	};
 
+#endif
 
 
 	// =====================================================================
 	// The classes of xz/lzma stream
 	// =====================================================================
+
+#ifndef COREARRAY_NO_LZMA
 
 	/** The wrapper of lzma algorithm **/
 	class COREARRAY_DLL_DEFAULT CdBaseXZStream: public CdRecodeStream
@@ -864,6 +881,8 @@ namespace CoreArray
 			{ fMessage = Format("xz stream error: %d", code); }
 	};
 
+#endif
+
 
 
 	// =====================================================================
@@ -973,7 +992,7 @@ namespace CoreArray
 			{ return fReadOnly; }
 		COREARRAY_INLINE const vector<CdBlockStream*> &BlockList() const
 			{ return fBlockList; }
-		COREARRAY_INLINE PdBlockStream_BlockInfo const UnusedBlock() const
+		COREARRAY_INLINE const CdBlockStream::TBlockInfo* UnusedBlock() const
         	{ return fUnuse; }
 
 	protected:

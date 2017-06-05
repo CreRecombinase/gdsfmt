@@ -8,7 +8,7 @@
 //
 // dFile.cpp: Functions and classes for CoreArray Genomic Data Structure (GDS)
 //
-// Copyright (C) 2007-2016    Xiuwen Zheng
+// Copyright (C) 2007-2017    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -859,6 +859,8 @@ namespace CoreArray
 	// LZ4: LZ4 Pipe
 	// =====================================================================
 
+#ifndef COREARRAY_NO_LZ4
+
 	typedef CdStreamPipe2<CdLZ4Decoder> CdLZ4ReadPipe;
 	typedef CdWritePipe2<CdLZ4Encoder, CdBaseLZ4Stream::TLZ4Chunk> CdLZ4WritePipe;
 
@@ -878,9 +880,10 @@ namespace CoreArray
 			{ return "LZ4"; }
 		virtual const char *Description() const
 		{
-			static char LZ4_TEXT[] = "lz4_v?.?_r131";
+			static char LZ4_TEXT[] = "lz4_v?.?.?";
 			LZ4_TEXT[5] = '0' + LZ4_VERSION_MAJOR;
 			LZ4_TEXT[7] = '0' + LZ4_VERSION_MINOR;
+			LZ4_TEXT[9] = '0' + LZ4_VERSION_RELEASE;
 			return LZ4_TEXT;
 		}
 		virtual void PushReadPipe(CdBufStream &buf)
@@ -915,9 +918,10 @@ namespace CoreArray
 			{ return "LZ4_ra"; }
 		virtual const char *Description() const
 		{
-			static char LZ4_TEXT[] = "lz4_v?.? (random access)";
+			static char LZ4_TEXT[] = "lz4_v?.?.? (random access)";
 			LZ4_TEXT[5] = '0' + LZ4_VERSION_MAJOR;
 			LZ4_TEXT[7] = '0' + LZ4_VERSION_MINOR;
+			LZ4_TEXT[9] = '0' + LZ4_VERSION_RELEASE;
 			return LZ4_TEXT;
 		}
 		virtual void PushReadPipe(CdBufStream &buf)
@@ -930,10 +934,14 @@ namespace CoreArray
 		virtual const char **ParamList() const { return RA_Str_BSize; }
 	};
 
+#endif
+
 
 	// =====================================================================
 	// XZ: xz stream
 	// =====================================================================
+
+#ifndef COREARRAY_NO_LZMA
 
 	typedef CdStreamPipe2<CdXZDecoder> CdXZReadPipe;
 	typedef CdWritePipe<CdXZEncoder> CdXZWritePipe;
@@ -992,6 +1000,9 @@ namespace CoreArray
 		virtual const char **CoderList() const { return XZ_RA_Strings; }
 		virtual const char **ParamList() const { return RA_Str_BSize; }
 	};
+
+#endif
+
 }
 
 
@@ -1110,10 +1121,14 @@ CdStreamPipeMgr::CdStreamPipeMgr(): CdAbstractManager()
 {
 	Register(new CdPipeZIP);
 	Register(new CdPipeZRA);
+#ifndef COREARRAY_NO_LZ4
 	Register(new CdPipeLZ4);
 	Register(new CdPipeLZ4RA);
+#endif
+#ifndef COREARRAY_NO_LZMA
 	Register(new CdPipeXZ);
 	Register(new CdPipeXZ_RA);
+#endif
 }
 
 CdStreamPipeMgr::~CdStreamPipeMgr()

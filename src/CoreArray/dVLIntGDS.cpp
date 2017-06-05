@@ -8,7 +8,7 @@
 //
 // dVLIntGDS.cpp: Encoding variable-length integers in GDS
 //
-// Copyright (C) 2016    Xiuwen Zheng
+// Copyright (C) 2016-2017    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -25,8 +25,8 @@
 // License along with CoreArray.
 // If not, see <http://www.gnu.org/licenses/>.
 
-#include <typeinfo>
 #include "dVLIntGDS.h"
+#include <typeinfo>
 
 
 using namespace std;

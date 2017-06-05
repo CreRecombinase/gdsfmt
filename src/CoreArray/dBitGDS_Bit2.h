@@ -8,7 +8,7 @@
 //
 // dBitGDS_Bit2.h: Bit operators and classes of GDS format for Bit2
 //
-// Copyright (C) 2007-2016    Xiuwen Zheng
+// Copyright (C) 2007-2017    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,7 +29,7 @@
  *	\file     dBitGDS_Bit2.h
  *	\author   Xiuwen Zheng [zhengx@u.washington.edu]
  *	\version  1.0
- *	\date     2007 - 2016
+ *	\date     2007 - 2017
  *	\brief    Bit operators and classes of GDS format for Bit2
  *	\details
 **/
@@ -121,12 +121,10 @@ namespace CoreArray
 	static const __m128i BIT2_REP_x03 = _mm_set1_epi8(0x03);
 	static const __m128i BIT2_UInt16_x03 = _mm_set1_epi16(0x03);
 	static const __m128i BIT2_UInt32_x03 = _mm_set1_epi32(0x03);
-	static const __m128i BIT2_UInt32_xFF = _mm_set1_epi32(0xFF);
 
 #ifdef COREARRAY_SIMD_AVX2
 	static const __m256i BIT2_AVX_REP_x03 = _mm256_set1_epi8(0x03);
 	static const __m256i BIT2_AVX_UInt32_x03 = _mm256_set1_epi32(0x03);
-	static const __m256i BIT2_AVX_UInt32_xFF = _mm256_set1_epi32(0xFF);
 	static const __m256i BIT2_AVX_UInt64_SHR = _mm256_set_epi64x(0, 32, 0, 0);
 #endif
 
@@ -786,7 +784,7 @@ namespace CoreArray
 			C_UInt8 Buffer[MEMORY_BUFFER_SIZE] COREARRAY_SIMD_ATTR_ALIGN;
 			while (n >= 4)
 			{
-				size_t nn = n >> 2;
+				ssize_t nn = n >> 2;
 				if (nn > MEMORY_BUFFER_SIZE) nn = MEMORY_BUFFER_SIZE;
 				p = BIT2_CONV<MEM_TYPE>::Encode(p, Buffer, nn);
 				I.Allocator->WriteData(Buffer, nn);
