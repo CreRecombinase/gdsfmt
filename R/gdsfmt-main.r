@@ -2,7 +2,7 @@
 #
 # gdsfmt-main.r: R Interface to CoreArray Genomic Data Structure (GDS) Files
 #
-# Copyright (C) 2011-2016    Xiuwen Zheng
+# Copyright (C) 2011-2019    Xiuwen Zheng
 #
 # This is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License Version 3 as
@@ -211,13 +211,14 @@ rename.gdsn <- function(node, newname)
 #############################################################
 # Get a list of names for the child nodes
 #
-ls.gdsn <- function(node, include.hidden=FALSE)
+ls.gdsn <- function(node, include.hidden=FALSE, recursive=FALSE,
+    include.dirs=TRUE)
 {
     if (inherits(node, "gds.class"))
         node <- node$root
     stopifnot(inherits(node, "gdsn.class"))
 
-    .Call(gdsNodeEnumName, node, include.hidden)
+    .Call(gdsNodeEnumName, node, include.hidden, recursive, include.dirs)
 }
 
 
@@ -300,6 +301,13 @@ add.gdsn <- function(node, name, val=NULL, storage=storage.mode(val),
         if (identical(compress, c("", "ZIP", "ZIP_RA", "LZMA", "LZMA_RA", "LZ4", "LZ4_RA")))
         {
             compress <- dp$compress
+        }
+        if (!is.null(dp$param))
+        {
+            for (nm in names(dp$param))
+            {
+                if (is.null(dots[[nm]])) dots[[nm]] <- dp$param[[nm]]
+            }
         }
     }
 
@@ -1183,38 +1191,39 @@ digest.gdsn <- function(node,
         if (length(nm) > 0L)
             delete.attr.gdsn(node, nm)
         invisible()
-    } else if (action %in% c("verify", "return"))
-    {
-        at <- get.attr.gdsn(node)
-        ans <- rep(NA, length(algoname))
-        names(ans) <- algoname
-        for (i in seq_along(ans))
-        {
-            h1 <- at[[algoname[i]]]
-            if (is.character(h1) & !anyNA(h1))
-            {
-                h2 <- unname(digest.gdsn(node, algo=algolist[i],
-                    action=ifelse(i<6, "none", "Robject")))
-                ans[i] <- identical(h1, h2)
-            }
-        }
-        if (action == "verify")
-        {
-            v <- !ans
-            v[is.na(v)] <- FALSE
-            if (sum(v) > 0L)
-            {
-                s <- algoname[v]
-                if (length(s) > 1L)
-                    stop(paste(s, collapse=", "), " verification fail.")
-                else
-                    stop(s, " verification fails.")
-            }
-        }
-        ans
     } else {
-        if (requireNamespace("digest", quietly=TRUE))
+        if (!requireNamespace("digest", quietly=TRUE))
+            stop("The 'digest' package should be installed.")
+        if (action %in% c("verify", "return"))
         {
+            at <- get.attr.gdsn(node)
+            ans <- rep(NA, length(algoname))
+            names(ans) <- algoname
+            for (i in seq_along(ans))
+            {
+                h1 <- at[[algoname[i]]]
+                if (is.character(h1) & !anyNA(h1))
+                {
+                    h2 <- unname(digest.gdsn(node, algo=algolist[i],
+                        action=ifelse(i < 6L, "none", "Robject")))
+                    ans[i] <- identical(h1, h2)
+                }
+            }
+            if (action == "verify")
+            {
+                v <- !ans
+                v[is.na(v)] <- FALSE
+                if (sum(v) > 0L)
+                {
+                    s <- algoname[v]
+                    if (length(s) > 1L)
+                        stop(paste(s, collapse=", "), " verification fail.")
+                    else
+                        stop(s, " verification fails.")
+                }
+            }
+            ans
+        } else {
             flag <- action %in% c("Robject", "add.Robj")
             ans <- .Call(gdsDigest, node, algo, flag)
             if (flag) algo <- paste0(algo, "_r")
@@ -1226,8 +1235,7 @@ digest.gdsn <- function(node,
             }
             names(ans) <- algo
             ans
-        } else
-            NA_character_
+        }
     }
 }
 
@@ -1264,8 +1272,10 @@ system.gds <- function()
 
     s <- rv$compression.encoder
     rv$compression.encoder <- data.frame(
-        encoder = rv$compression.encoder[seq.int(1L, length(s), 2L)],
-        description = rv$compression.encoder[seq.int(2L, length(s), 2L)],
+        encoder = rv$compression.encoder[seq.int(1L, length(s), 4L)],
+        description = rv$compression.encoder[seq.int(2L, length(s), 4L)],
+        option = rv$compression.encoder[seq.int(3L, length(s), 4L)],
+        ext = rv$compression.encoder[seq.int(4L, length(s), 4L)],
         stringsAsFactors = FALSE)
     rv$class.list <- data.frame(rv$class.list, stringsAsFactors=FALSE)
     colnames(rv$class.list) <- c("name", "description")
@@ -1295,6 +1305,8 @@ system.gds <- function()
     crayon.flag && requireNamespace("crayon", quietly=TRUE)
 }
 
+.pretty_size <- function(sz) .Call(gdsFmtSize, sz)
+
 print.gds.class <- function(x, ...)
 {
     # check
@@ -1304,9 +1316,9 @@ print.gds.class <- function(x, ...)
     if (.crayon())
     {
         s <- paste0(crayon::inverse("File:"), " ", x$filename, " ",
-            crayon::blurred(paste0("(", .Call(gdsFmtSize, size), ")")), "\n")
+            crayon::blurred(paste0("(", .pretty_size(size), ")")), "\n")
     } else {
-        s <- paste0("File: ", x$filename, " (", .Call(gdsFmtSize, size), ")\n")
+        s <- paste0("File: ", x$filename, " (", .pretty_size(size), ")\n")
     }
     cat(s)
     print(x$root, ...)
@@ -1400,7 +1412,7 @@ print.gdsn.class <- function(x, expand=TRUE, all=FALSE, attribute=FALSE,
         }
 
         if (is.finite(n$size))
-            s <- paste0(s, BLURRED(", "), BLURRED(.Call(gdsFmtSize, n$size)))
+            s <- paste0(s, BLURRED(", "), BLURRED(.pretty_size(n$size)))
 
         if (length(at) > 0L)
             s <- paste(s, rText, "*")

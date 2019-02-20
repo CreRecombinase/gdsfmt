@@ -8,7 +8,7 @@
 //
 // dStream.cpp: Stream classes and functions
 //
-// Copyright (C) 2007-2017    Xiuwen Zheng
+// Copyright (C) 2007-2018    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -266,9 +266,9 @@ SIZE64 CdMemoryStream::Seek(SIZE64 Offset, TdSysSeekOrg Origin)
 		case soBeginning:
 			fPosition = Offset; break;
 		case soCurrent:
-        	fPosition += Offset; break;
+			fPosition += Offset; break;
 		case soEnd:
-        	fPosition = fCapacity + Offset;
+			fPosition = fCapacity + Offset;
 			break;
 		default:
 			return -1;
@@ -412,7 +412,7 @@ inline void CdRecodeStream::UpdateStreamPosition()
 
 CdRecodeLevel::CdRecodeLevel(CdRecodeStream::TLevel level)
 {
-	if ((level < CdRecodeStream::clMin) || (level > CdRecodeStream::clMax))
+	if ((level < CdRecodeStream::clMin) || (level > CdRecodeStream::clCustom))
 		throw ErrRecodeStream("Invalid compression level: %d", (int)level);
 
 	fLevel = level;
@@ -1216,7 +1216,8 @@ ssize_t CdZEncoder_RA::Write(const void *Buffer, ssize_t Count)
 				ZCheck(ZLIB_DEFLATE_PENDING(&fZStream, &pending, &bits));
 				if (bits > 0) pending ++;
 
-				if ((fCurBlockZIPSize - (int)pending) <= 0)
+				if ((fCurBlockZIPSize - (int)pending <= 0) ||
+					(fTotalIn - fCB_UZStart >= 0xF8000000))
 				{
 					// finish this block
 					// 'fZStream.avail_in = 0' in SyncFinishBlock()
@@ -1480,7 +1481,7 @@ EZLibError::EZLibError(int Code): ErrRecodeStream()
 static const ssize_t LZ4ChunkSize[4] =
 	{ 64*1024, 256*1024, 1*1024*1024, 4*1024*1024 };
 static const int LZ4DeflateLevel[4] =
-	{ 0, 2, 8, 16 };
+	{ 0, LZ4HC_CLEVEL_MIN, LZ4HC_CLEVEL_DEFAULT, LZ4HC_CLEVEL_MAX };
 static const LZ4F_blockSizeID_t LZ4FrameInfoBlockSize[4] =
 	{ LZ4F_max64KB, LZ4F_max256KB, LZ4F_max1MB, LZ4F_max4MB };
 
@@ -1546,9 +1547,10 @@ CdLZ4Encoder::~CdLZ4Encoder()
 	}
 	if (lz4_context)
 	{
-		LZ4F_errorCode_t err = LZ4F_freeCompressionContext(lz4_context);
+		// LZ4F_errorCode_t err = 
+		LZ4F_freeCompressionContext(lz4_context);
 		lz4_context = NULL;
-		if (LZ4F_isError(err)) throw ELZ4Error(err);
+		// if (LZ4F_isError(err)) throw ELZ4Error(err);
 	}
 }
 
@@ -1652,9 +1654,10 @@ CdLZ4Decoder::~CdLZ4Decoder()
 {
 	if (lz4_context)
 	{
-		LZ4F_errorCode_t err = LZ4F_freeDecompressionContext(lz4_context);
+		// LZ4F_errorCode_t err =
+		LZ4F_freeDecompressionContext(lz4_context);
 		lz4_context = NULL;
-		if (LZ4F_isError(err)) throw ELZ4Error(err);
+		// if (LZ4F_isError(err)) throw ELZ4Error(err);
 	}
 }
 
@@ -2247,13 +2250,55 @@ CdXZEncoder::CdXZEncoder(CdStream &Dest, TLevel Level):
 {
 	PtrExtRec = NULL;
 	fHaveClosed = false;
-	XZCheck(lzma_easy_encoder(&fXZStream, XZLevels[Level], LZMA_CHECK_CRC32));
+	InitXZStream();
+}
+
+CdXZEncoder::CdXZEncoder(CdStream &Dest, int DictKB):
+	CdBaseXZStream(Dest), CdRecodeLevel(clCustom)
+{
+	PtrExtRec = NULL;
+	fHaveClosed = false;
+	if (DictKB < 128 || DictKB > 1572864)  // 128KiB min, 1536MiB max
+		throw EXZError("CdXZEncoder initialization error (DictKB: %d).", DictKB);
+
+	lzma_options_lzma opt_lzma;
+	if (lzma_lzma_preset(&opt_lzma, 9 | LZMA_PRESET_EXTREME))
+		throw EXZError("CdXZEncoder initialization internal error.");
+	opt_lzma.dict_size = DictKB * 1024;
+
+	lzma_filter filters[2];
+	filters[0].id = LZMA_FILTER_LZMA2;
+	filters[0].options = &opt_lzma;
+	filters[1].id = LZMA_VLI_UNKNOWN;
+	XZCheck(lzma_stream_encoder(&fXZStream, filters, LZMA_CHECK_CRC32));
 }
 
 CdXZEncoder::~CdXZEncoder()
 {
 	Close();
 	lzma_end(&fXZStream);
+}
+
+void CdXZEncoder::InitXZStream()
+{
+	if (clMin<=fLevel && fLevel<=clMax)
+	{
+		XZCheck(lzma_easy_encoder(&fXZStream, XZLevels[fLevel],
+			LZMA_CHECK_CRC32));
+	} else if (fLevel==clUltra || fLevel==clUltraMax)
+	{
+		lzma_options_lzma opt_lzma;
+		if (lzma_lzma_preset(&opt_lzma, 9 | LZMA_PRESET_EXTREME))
+			throw EXZError("CdXZEncoder initialization internal error.");
+		opt_lzma.dict_size = (fLevel==clUltra) ? 512*1024*1024 : (1024+512)*1024*1024; // 512MiB : 1.5GB
+		opt_lzma.depth = (fLevel==clUltra) ?  512*8: 65536;  // -9e with 512
+		lzma_filter filters[2];
+		filters[0].id = LZMA_FILTER_LZMA2;
+		filters[0].options = &opt_lzma;
+		filters[1].id = LZMA_VLI_UNKNOWN;
+		XZCheck(lzma_stream_encoder(&fXZStream, filters, LZMA_CHECK_CRC32));
+	} else
+		throw EXZError("CdXZEncoder initialization level error.");
 }
 
 ssize_t CdXZEncoder::Read(void *Buffer, ssize_t Count)
@@ -2524,7 +2569,8 @@ ssize_t CdXZEncoder_RA::Write(const void *Buffer, ssize_t Count)
 				fXZStream.avail_out = sizeof(buf);
 				fCurBlockZIPSize -= n;
 
-				if ((fCurBlockZIPSize - Pending()) <= 0)
+				if ((fCurBlockZIPSize - Pending() <= 0) ||
+					(fTotalIn - fCB_UZStart >= 0xF8000000))
 				{
 					// finish this block
 					// 'fZStream.avail_in = 0' in SyncFinishBlock()
@@ -2568,7 +2614,7 @@ void CdXZEncoder_RA::SyncFinishBlock()
 		DoneWriteBlock();
 		fCurBlockZIPSize = fBlockZIPSize;
 		lzma_end(&fXZStream);
-		XZCheck(lzma_easy_encoder(&fXZStream, XZLevels[fLevel], LZMA_CHECK_CRC32));
+		InitXZStream();
 	}
 }
 
@@ -2772,7 +2818,7 @@ void CdXZDecoder_RA::Reset()
 // GDS block stream
 
 static const char *ErrBlockInvalidPos =
-	"Invalid Position: %lld in CdBlockStream.";
+	"Invalid Position: %lld in CdBlockStream (current blocksize: %lld).";
 static const char *ErrInvalidBlockLength =
 	"Invalid block length in CdBlockCollection!";
 
@@ -2975,7 +3021,7 @@ SIZE64 CdBlockStream::Seek(SIZE64 Offset, TdSysSeekOrg Origin)
 			return -1;
 	}
 	if ((rv < 0) || (rv > fBlockSize))
-		throw ErrStream(ErrBlockInvalidPos, rv);
+		throw ErrStream(ErrBlockInvalidPos, rv, (C_Int64)fBlockSize);
 	fCurrent = _FindCur(rv);
 	return (fPosition = rv);
 }

@@ -8,7 +8,7 @@
 //
 // dFile.cpp: Functions and classes for CoreArray Genomic Data Structure (GDS)
 //
-// Copyright (C) 2007-2017    Xiuwen Zheng
+// Copyright (C) 2007-2018    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -80,7 +80,7 @@ void CdObjAttr::Assign(CdObjAttr &Source)
 	}
 }
 
-CdAny &CdObjAttr::Add(const UTF16String &Name)
+CdAny &CdObjAttr::Add(const UTF8String &Name)
 {
 	_ValidateName(Name);
 	vector<TdPair*>::iterator it = _Find(Name);
@@ -92,10 +92,10 @@ CdAny &CdObjAttr::Add(const UTF16String &Name)
 		Changed();
 		return I->val;
 	} else
-		throw ErrGDSObj(ERR_ATTR_NAME_EXIST, UTF16ToUTF8(Name).c_str());
+		throw ErrGDSObj(ERR_ATTR_NAME_EXIST, Name.c_str());
 }
 
-int CdObjAttr::IndexName(const UTF16String &Name)
+int CdObjAttr::IndexName(const UTF8String &Name)
 {
 	vector<TdPair*>::iterator it = _Find(Name);
 	if (it != fList.end())
@@ -104,16 +104,16 @@ int CdObjAttr::IndexName(const UTF16String &Name)
 		return -1;
 }
 
-bool CdObjAttr::HasName(const UTF16String &Name)
+bool CdObjAttr::HasName(const UTF8String &Name)
 {
 	return (IndexName(Name) >= 0);
 }
 
-void CdObjAttr::Delete(const UTF16String &Name)
+void CdObjAttr::Delete(const UTF8String &Name)
 {
 	vector<TdPair*>::iterator it = _Find(Name);
 	if (it == fList.end())
-		throw ErrGDSObj(ERR_ATTR_NAME, UTF16ToUTF8(Name).c_str());
+		throw ErrGDSObj(ERR_ATTR_NAME, Name.c_str());
 	TdPair *p = *it;
 	*it = NULL;
 	fList.erase(it);
@@ -152,11 +152,11 @@ void CdObjAttr::Changed()
 	this->fOwner.fChanged = true;
 }
 
-CdAny & CdObjAttr::operator[](const UTF16String &Name)
+CdAny & CdObjAttr::operator[](const UTF8String &Name)
 {
 	vector<TdPair*>::iterator it = _Find(Name);
 	if (it == fList.end())
-		throw ErrGDSObj(ERR_ATTR_NAME, UTF16ToUTF8(Name).c_str());
+		throw ErrGDSObj(ERR_ATTR_NAME, Name.c_str());
 	return (*it)->val;
 }
 
@@ -188,7 +188,7 @@ void CdObjAttr::Loading(CdReader &Reader, TdVersion Version)
 		{
 			TdPair *I = new TdPair;
 			try {
-				I->name = Reader.Storage().RpUTF16();
+				I->name = UTF16ToUTF8(Reader.Storage().RpUTF16()); // TODO
 				Reader >> I->val;
 			} catch (...) {
 				delete I;
@@ -210,14 +210,14 @@ void CdObjAttr::Saving(CdWriter &Writer)
 		vector<TdPair*>::iterator it;
 		for (it=fList.begin(); it != fList.end(); it++)
 		{
-			Writer.Storage().WpUTF16((*it)->name);
+			Writer.Storage().WpUTF16(UTF8ToUTF16((*it)->name)); // TODO
 			Writer << (*it)->val;
 		}
 		Writer.EndStruct();
 	}
 }
 
-vector<CdObjAttr::TdPair*>::iterator CdObjAttr::_Find(const UTF16String &Name)
+vector<CdObjAttr::TdPair*>::iterator CdObjAttr::_Find(const UTF8String &Name)
 {
 	vector<TdPair*>::iterator it;
 	for (it = fList.begin(); it != fList.end(); it++)
@@ -228,35 +228,35 @@ vector<CdObjAttr::TdPair*>::iterator CdObjAttr::_Find(const UTF16String &Name)
 	return it;
 }
 
-void CdObjAttr::SetName(const UTF16String &OldName, const UTF16String &NewName)
+void CdObjAttr::SetName(const UTF8String &OldName, const UTF8String &NewName)
 {
 	_ValidateName(NewName);
 	vector<TdPair*>::iterator it = _Find(OldName);
 	if (it == fList.end())
-		throw ErrGDSObj(ERR_ATTR_NAME, UTF16ToUTF8(OldName).c_str());
+		throw ErrGDSObj(ERR_ATTR_NAME, OldName.c_str());
 	if (OldName != NewName)
 	{
 		if (HasName(NewName))
-			throw ErrGDSObj(ERR_ATTR_NAME_EXIST, UTF16ToUTF8(NewName).c_str());
+			throw ErrGDSObj(ERR_ATTR_NAME_EXIST, NewName.c_str());
 		(*it)->name = NewName;
 		Changed();
 	}
 }
 
-void CdObjAttr::SetName(int Index, const UTF16String &NewName)
+void CdObjAttr::SetName(int Index, const UTF8String &NewName)
 {
 	TdPair &p = *fList.at(Index); // check range
 	_ValidateName(NewName);
 	if (p.name != NewName)
 	{
 		if (HasName(NewName))
-			throw ErrGDSObj(ERR_ATTR_NAME_EXIST, UTF16ToUTF8(NewName).c_str());
+			throw ErrGDSObj(ERR_ATTR_NAME_EXIST, NewName.c_str());
 		p.name = NewName;
 		Changed();
 	}
 }
 
-void CdObjAttr::_ValidateName(const UTF16String &name)
+void CdObjAttr::_ValidateName(const UTF8String &name)
 {
 	if (name.empty())
         throw ErrGDSObj("Invalid name: ZERO length.");
@@ -290,7 +290,7 @@ void CdGDSObj::AssignAttribute(CdGDSObj &Source)
 	fAttr.Assign(Source.Attribute());
 }
 
-UTF16String CdGDSObj::Name() const
+UTF8String CdGDSObj::Name() const
 {
 	if (fFolder)
 	{
@@ -304,9 +304,10 @@ UTF16String CdGDSObj::Name() const
 	throw ErrGDSObj(ERR_NO_NAME);
 }
 
-UTF16String CdGDSObj::FullName(const UTF16String &Delimiter) const
+UTF8String CdGDSObj::FullName() const
 {
-	UTF16String rv = Name();
+	const UTF8String Delimiter = "/";
+	UTF8String rv = Name();
 	CdGDSFolder *p = fFolder;
 	if (p != NULL)
 	{
@@ -319,12 +320,7 @@ UTF16String CdGDSObj::FullName(const UTF16String &Delimiter) const
 	return rv;
 }
 
-UTF16String CdGDSObj::FullName(const char *Delimiter) const
-{
-	return FullName(UTF16Text(Delimiter));
-}
-
-void CdGDSObj::SetName(const UTF16String &NewName)
+void CdGDSObj::SetName(const UTF8String &NewName)
 {
 	if (fFolder)
 	{
@@ -488,7 +484,7 @@ void CdGDSObj::SaveToBlockStream()
 string CdGDSObj::LogValue()
 {
 	if (fFolder)
-		return RawText(FullName("/"));
+		return FullName();
 	else
 		return "/";
 }
@@ -553,12 +549,14 @@ namespace CoreArray
 	static const char *VAR_PIPE_LEVEL  = "PIPE_LEVEL";
 	static const char *VAR_PIPE_BKSIZE = "PIPE_BKSIZE";
 
-	static const CdRecodeStream::TLevel CompressionLevels[5] =
+	static const CdRecodeStream::TLevel CompressionLevels[] =
 	{
 		CdRecodeStream::clMin,
 		CdRecodeStream::clFast,
 		CdRecodeStream::clDefault,
 		CdRecodeStream::clMax,
+		CdRecodeStream::clUltra,     // ultra  (LZMA 512MiB)
+		CdRecodeStream::clUltraMax,  // ultra_max  (LZMA 1536MiB)
 		CdRecodeStream::clDefault
 	};
 
@@ -729,7 +727,7 @@ namespace CoreArray
 				BYTE_LE<CdStream> S(Stream);
 				S.SetPosition(vSizeInfo_Ptr);
 				S << fStreamTotalIn << fStreamTotalOut;
-            }
+			}
 		}
 		virtual void LoadStream(CdReader &Reader, TdVersion Version)
 		{
@@ -751,11 +749,12 @@ namespace CoreArray
 			{
 				C_UInt8 I = 0;
 				Reader[VAR_PIPE_LEVEL] >> I;
-				if (I > 3)
+				if (I > 5)
 				{
 					// Since clNone=0, clFast=1, clDefault=2, clMax=3
-            	    throw ErrGDSObj("Invalid 'PIPE_LEVEL %d'", I);
-            	}
+					// clUltra=4, clUltraMax=5
+					throw ErrGDSObj("Invalid 'PIPE_LEVEL %d'", I);
+				}
 				fLevel = (CdRecodeStream::TLevel)I;
 			} else
 				fLevel = CdRecodeStream::clUnknown;
@@ -801,7 +800,7 @@ namespace CoreArray
 
 	static const char *ZIP_Strings[] =
 	{
-		"ZIP.min", "ZIP.fast", "ZIP.def", "ZIP.max", "ZIP", NULL
+		"ZIP.min", "ZIP.fast", "ZIP.def", "ZIP.max", "", "", "ZIP", NULL
 	};
 
 	class COREARRAY_DLL_DEFAULT CdPipeZIP:
@@ -832,7 +831,8 @@ namespace CoreArray
 
 	static const char *ZRA_Strings[] =
 	{
-		"ZIP_RA.min", "ZIP_RA.fast", "ZIP_RA.def", "ZIP_RA.max", "ZIP_RA", NULL
+		"ZIP_RA.min", "ZIP_RA.fast", "ZIP_RA.def", "ZIP_RA.max",
+		"", "", "ZIP_RA", NULL
 	};
 
 	class COREARRAY_DLL_DEFAULT CdPipeZRA:
@@ -866,7 +866,7 @@ namespace CoreArray
 
 	static const char *LZ4_Strings[] =
 	{
-		"LZ4.min", "LZ4.fast", "LZ4.hc", "LZ4.max", "LZ4", NULL
+		"LZ4.min", "LZ4.fast", "LZ4.hc", "LZ4.max", "", "", "LZ4", NULL
 	};
 	static const char *LZ4_Str_BSize[] =
 		{ "64K", "256K", "1M", "4M", NULL };
@@ -906,7 +906,8 @@ namespace CoreArray
 
 	static const char *LZ4RA_Strings[] =
 	{
-		"LZ4_RA.min", "LZ4_RA.fast", "LZ4_RA.hc", "LZ4_RA.max", "LZ4_RA", NULL
+		"LZ4_RA.min", "LZ4_RA.fast", "LZ4_RA.hc", "LZ4_RA.max",
+		"", "", "LZ4_RA", NULL
 	};
 
 	class COREARRAY_DLL_DEFAULT CdPipeLZ4RA:
@@ -948,7 +949,8 @@ namespace CoreArray
 
 	static const char *XZ_Strings[] =
 	{
-		"LZMA.min", "LZMA.fast", "LZMA.def", "LZMA.max", "LZMA", NULL
+		"LZMA.min", "LZMA.fast", "LZMA.def", "LZMA.max",
+		"LZMA.ultra", "LZMA.ultra_max", "LZMA", NULL
 	};
 
 	class COREARRAY_DLL_DEFAULT CdPipeXZ:
@@ -971,7 +973,7 @@ namespace CoreArray
 
 
 	// =====================================================================
-	// ZRA: ZIP Pipe with the support of random access
+	// XZ_RA: XZ Pipe with the support of random access
 	// =====================================================================
 
 	typedef CdStreamPipe2<CdXZDecoder_RA> CdXZReadPipe_RA;
@@ -979,7 +981,8 @@ namespace CoreArray
 
 	static const char *XZ_RA_Strings[] =
 	{
-		"LZMA_RA.min", "LZMA_RA.fast", "LZMA_RA.def", "LZMA_RA.max", "LZMA_RA", NULL
+		"LZMA_RA.min", "LZMA_RA.fast", "LZMA_RA.def", "LZMA_RA.max",
+		"LZMA_RA.ultra", "LZMA_RA.ultra_max", "LZMA_RA", NULL
 	};
 
 	class COREARRAY_DLL_DEFAULT CdPipeXZ_RA:
@@ -1048,6 +1051,40 @@ CdPipeMgrItem2::CdPipeMgrItem2(): CdPipeMgrItem()
 	fCoderIndex = fParamIndex = -1;
 }
 
+string CdPipeMgrItem2::CoderOptString() const
+{
+	string rv;
+	const char **ss = CoderList();
+	for (; *ss; ss++)
+	{
+		if (strlen(*ss) > 0)
+		{
+			if (!rv.empty()) rv.append(", ");
+			rv.append(*ss);
+		}
+	}
+	return rv;
+}
+
+string CdPipeMgrItem2::ExtOptString() const
+{
+	string rv;
+	const char **ss = ParamList();
+	if (ss)
+	{
+		for (; *ss; ss++)
+		{
+			if (strlen(*ss) > 0)
+			{
+				if (!rv.empty()) rv.append(", ");
+				rv.append(":");
+				rv.append(*ss);
+			}
+		}
+	}
+	return rv;
+}
+
 bool CdPipeMgrItem2::Equal(const char *Mode) const
 {
 	int ic, ip;
@@ -1088,7 +1125,7 @@ void CdPipeMgrItem2::ParseMode(const char *Mode, int &IdxCoder,
 	const char **ss = CoderList();
 	for (int i=0; *ss != NULL; ss++, i++)
 	{
-		if (EqualText(s.c_str(), *ss))
+		if (strlen(*ss)>0 && EqualText(s.c_str(), *ss))
 		{
 			IdxCoder = i;
 			break;
@@ -1101,7 +1138,7 @@ void CdPipeMgrItem2::ParseMode(const char *Mode, int &IdxCoder,
 	{
 		for (int i=0; *ss != NULL; ss++, i++)
 		{
-			if (EqualText(Mode, *ss))
+			if (strlen(*ss)>0 && EqualText(Mode, *ss))
 			{
 				IdxParam = i;
 				break;
@@ -1252,6 +1289,7 @@ void CdGDSLabel::Assign(CdGDSObj &Source, bool Full)
 // =====================================================================
 
 static const char *ERR_NAME_EXIST   = "The GDS node \"%s\" exists.";
+static const char *ERR_NAME_INVALID = "The GDS node name \"%s\" should not contain '/' or '\x0'.";
 static const char *ERR_FOLDER_ITEM  = "Invalid index %d.";
 static const char *ERR_FOLDER_NAME  = "Invalid node name \"%s\".";
 static const char *ERR_NO_FOLDER    = "There is not a folder named \"%s\".";
@@ -1323,13 +1361,15 @@ void CdGDSFolder::AssignFolder(CdGDSAbsFolder &Source)
 	}
 }
 
-CdGDSObj *CdGDSFolder::AddFolder(const UTF16String &Name)
+CdGDSObj *CdGDSFolder::AddFolder(const UTF8String &Name)
 {
 	_CheckWritable();
 	_CheckGDSStream();
 
+	if (!_ValidName(Name))
+		throw ErrGDSObj(ERR_NAME_INVALID, Name.c_str());
 	if (_HasName(Name))
-		throw ErrGDSObj(ERR_NAME_EXIST, UTF16ToUTF8(Name).c_str());
+		throw ErrGDSObj(ERR_NAME_EXIST, Name.c_str());
 
 	CdGDSFolder *rv = new CdGDSFolder;
 	rv->fFolder = this;
@@ -1348,12 +1388,12 @@ CdGDSObj *CdGDSFolder::AddFolder(const UTF16String &Name)
 	return rv;
 }
 
-CdGDSObj *CdGDSFolder::AddObj(const UTF16String &Name, CdGDSObj *val)
+CdGDSObj *CdGDSFolder::AddObj(const UTF8String &Name, CdGDSObj *val)
 {
 	return InsertObj(-1, Name, val);
 }
 
-CdGDSObj *CdGDSFolder::InsertObj(int index, const UTF16String &Name,
+CdGDSObj *CdGDSFolder::InsertObj(int index, const UTF8String &Name,
 	CdGDSObj *val)
 {
 	if ((index < -1) || (index > (int)fList.size()))
@@ -1364,8 +1404,10 @@ CdGDSObj *CdGDSFolder::InsertObj(int index, const UTF16String &Name,
 	_CheckWritable();
 	_CheckGDSStream();
 
+	if (!_ValidName(Name))
+		throw ErrGDSObj(ERR_NAME_INVALID, Name.c_str());
 	if (_HasName(Name))
-		throw ErrGDSObj(ERR_NAME_EXIST, UTF16ToUTF8(Name).c_str());
+		throw ErrGDSObj(ERR_NAME_EXIST, Name.c_str());
 
 	TNode I;
 	if (val == NULL)
@@ -1525,17 +1567,17 @@ CdGDSFolder & CdGDSFolder::DirItem(int Index)
 	if (dynamic_cast<CdGDSFolder*>(I.Obj))
 		return *static_cast<CdGDSFolder*>(I.Obj);
 	else
-    	throw ErrGDSObj(ERR_NO_FOLDER, UTF16ToUTF8(I.Name).c_str());
+    	throw ErrGDSObj(ERR_NO_FOLDER, I.Name.c_str());
 }
 
-CdGDSFolder & CdGDSFolder::DirItem(const UTF16String &Name)
+CdGDSFolder & CdGDSFolder::DirItem(const UTF8String &Name)
 {
 	CdGDSFolder::TNode &I = _NameItem(Name);
 	_LoadItem(I);
 	if (dynamic_cast<CdGDSFolder*>(I.Obj))
 		return *static_cast<CdGDSFolder*>(I.Obj);
 	else
-    	throw ErrGDSObj(ERR_NO_FOLDER, UTF16ToUTF8(I.Name).c_str());
+    	throw ErrGDSObj(ERR_NO_FOLDER, I.Name.c_str());
 }
 
 CdGDSObj *CdGDSFolder::ObjItem(int Index)
@@ -1547,7 +1589,7 @@ CdGDSObj *CdGDSFolder::ObjItem(int Index)
 	return I.Obj;
 }
 
-CdGDSObj *CdGDSFolder::ObjItem(const UTF16String &Name)
+CdGDSObj *CdGDSFolder::ObjItem(const UTF8String &Name)
 {
 	CdGDSFolder::TNode &I = _NameItem(Name);
 	_LoadItem(I);
@@ -1563,7 +1605,7 @@ CdGDSObj *CdGDSFolder::ObjItemEx(int Index)
 	return I.Obj;
 }
 
-CdGDSObj *CdGDSFolder::ObjItemEx(const UTF16String &Name)
+CdGDSObj *CdGDSFolder::ObjItemEx(const UTF8String &Name)
 {
 	vector<CdGDSFolder::TNode>::iterator it;
 	for (it = fList.begin(); it != fList.end(); it++)
@@ -1577,18 +1619,18 @@ CdGDSObj *CdGDSFolder::ObjItemEx(const UTF16String &Name)
 	return NULL;
 }
 
-CdGDSObj *CdGDSFolder::Path(const UTF16String &FullName)
+CdGDSObj *CdGDSFolder::Path(const UTF8String &FullName)
 {
 	CdGDSObj *rv = PathEx(FullName);
 	if (!rv)
-		throw ErrGDSObj(ERR_INVALID_PATH, UTF16ToUTF8(FullName).c_str());
+		throw ErrGDSObj(ERR_INVALID_PATH, FullName.c_str());
 	return rv;
 }
 
-CdGDSObj *CdGDSFolder::PathEx(const UTF16String &FullName)
+CdGDSObj *CdGDSFolder::PathEx(const UTF8String &FullName)
 {
-	static const C_UTF16 delimit = '/';
-	const C_UTF16 *p = FullName.c_str();
+	const char delimit = '/';
+	const char *p = FullName.c_str();
 
 	CdGDSObj *rv = this;
 	while ((*p) && (rv))
@@ -1597,30 +1639,15 @@ CdGDSObj *CdGDSFolder::PathEx(const UTF16String &FullName)
 			return NULL;
 		if (*p == delimit) p ++;
 
-		const C_UTF16 *s = p;
+		const char *s = p;
 		while ((*p != delimit) && (*p != 0))
 			p ++;
 		if (s == p)
 			return rv;
-		rv = ((CdGDSAbsFolder*)rv)->ObjItemEx(UTF16String(s, p));
+		rv = ((CdGDSAbsFolder*)rv)->ObjItemEx(UTF8String(s, p));
 	}
 
 	return rv;
-}
-
-void CdGDSFolder::SplitPath(const UTF16String &FullName, UTF16String &Path,
-	UTF16String &Name)
-{
-	static const C_UTF16 delimit = '/';
-	size_t pos = FullName.find(delimit);
-	if (pos == UTF16String::npos)
-	{
-		Path.clear();
-		Name = FullName;
-	} else {
-		Path = FullName.substr(0, pos);
-        Name = FullName.substr(pos+1, FullName.size()-pos-1);
-    }
 }
 
 int CdGDSFolder::IndexObj(CdGDSObj *Obj)
@@ -1737,7 +1764,7 @@ void CdGDSFolder::_ClearFolder()
 	fList.clear();
 }
 
-bool CdGDSFolder::_HasName(const UTF16String &Name)
+bool CdGDSFolder::_HasName(const UTF8String &Name)
 {
 	vector<CdGDSFolder::TNode>::iterator it;
 	for (it = fList.begin(); it != fList.end(); it++)
@@ -1746,13 +1773,23 @@ bool CdGDSFolder::_HasName(const UTF16String &Name)
 	return false;
 }
 
-CdGDSFolder::TNode &CdGDSFolder::_NameItem(const UTF16String &Name)
+bool CdGDSFolder::_ValidName(const UTF8String &Name)
+{
+	for (size_t i=0; i < Name.size(); i++)
+	{
+		char ch = Name[i];
+		if (ch=='/' || ch=='\x0') return false;
+	}
+	return true;
+}
+
+CdGDSFolder::TNode &CdGDSFolder::_NameItem(const UTF8String &Name)
 {
 	vector<CdGDSFolder::TNode>::iterator it;
 	for (it = fList.begin(); it != fList.end(); it++)
 		if (it->Name == Name)
 			return *it;
-	throw ErrGDSObj(ERR_FOLDER_NAME, UTF16ToUTF8(Name).c_str());
+	throw ErrGDSObj(ERR_FOLDER_NAME, Name.c_str());
 }
 
 void CdGDSFolder::_LoadItem(TNode &I)
@@ -1824,7 +1861,6 @@ void CdGDSFolder::_LoadItem(TNode &I)
 			Reader.EndStruct();
 
 		} else {
-
 			// it is a class object
 			CdObjRef *obj = NULL;
 
@@ -2012,19 +2048,19 @@ void CdGDSVirtualFolder::SetLinkFile(const UTF8String &FileName)
 	}
 }
 
-CdGDSObj *CdGDSVirtualFolder::AddFolder(const UTF16String &Name)
+CdGDSObj *CdGDSVirtualFolder::AddFolder(const UTF8String &Name)
 {
 	_CheckLinked();
 	return fLinkFile->Root().AddFolder(Name);
 }
 
-CdGDSObj *CdGDSVirtualFolder::AddObj(const UTF16String &Name, CdGDSObj *val)
+CdGDSObj *CdGDSVirtualFolder::AddObj(const UTF8String &Name, CdGDSObj *val)
 {
 	_CheckLinked();
 	return fLinkFile->Root().AddObj(Name, val);
 }
 
-CdGDSObj *CdGDSVirtualFolder::InsertObj(int index, const UTF16String &Name,
+CdGDSObj *CdGDSVirtualFolder::InsertObj(int index, const UTF8String &Name,
 	CdGDSObj *val)
 {
 	_CheckLinked();
@@ -2061,7 +2097,7 @@ CdGDSObj *CdGDSVirtualFolder::ObjItem(int Index)
 	return fLinkFile->Root().ObjItem(Index);
 }
 
-CdGDSObj *CdGDSVirtualFolder::ObjItem(const UTF16String &Name)
+CdGDSObj *CdGDSVirtualFolder::ObjItem(const UTF8String &Name)
 {
 	_CheckLinked();
 	return fLinkFile->Root().ObjItem(Name);
@@ -2073,19 +2109,19 @@ CdGDSObj *CdGDSVirtualFolder::ObjItemEx(int Index)
 	return fLinkFile->Root().ObjItemEx(Index);
 }
 
-CdGDSObj *CdGDSVirtualFolder::ObjItemEx(const UTF16String &Name)
+CdGDSObj *CdGDSVirtualFolder::ObjItemEx(const UTF8String &Name)
 {
 	_CheckLinked();
 	return fLinkFile->Root().ObjItemEx(Name);
 }
 
-CdGDSObj *CdGDSVirtualFolder::Path(const UTF16String &FullName)
+CdGDSObj *CdGDSVirtualFolder::Path(const UTF8String &FullName)
 {
 	_CheckLinked();
 	return fLinkFile->Root().Path(FullName);
 }
 
-CdGDSObj *CdGDSVirtualFolder::PathEx(const UTF16String &FullName)
+CdGDSObj *CdGDSVirtualFolder::PathEx(const UTF8String &FullName)
 {
 	_CheckLinked();
 	return fLinkFile->Root().PathEx(FullName);
@@ -2424,17 +2460,17 @@ CdGDSRoot::CdGDSRoot(): CdGDSFolder()
 	fVFolder = NULL;
 }
 
-UTF16String CdGDSRoot::Name() const
+UTF8String CdGDSRoot::Name() const
 {
 	if (fVFolder)
 	{
 		return fVFolder->Name();
 	} else {
-		return UTF16String();
+		return UTF8String();
 	}
 }
 
-void CdGDSRoot::SetName(const UTF16String &NewName)
+void CdGDSRoot::SetName(const UTF8String &NewName)
 {
 	if (fVFolder)
 	{
@@ -2544,15 +2580,7 @@ CdGDSFile::CdGDSFile(const char *fn, TdOpenMode Mode):
 CdGDSFile::~CdGDSFile()
 {
 	CloseFile();
-	if (fLog)
-	{
-	#ifdef COREARRAY_CODE_DEBUG
-		if (fLog->Release() != 0)
-			throw ErrSerial("Log::Release() should return 0 here.");
-	#else
-		fLog->Release();
-	#endif
-	}
+	if (fLog) fLog->Release();
 }
 
 void CdGDSFile::LoadStream(CdStream *Stream, bool ReadOnly)

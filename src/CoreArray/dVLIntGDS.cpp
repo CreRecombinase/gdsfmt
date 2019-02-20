@@ -8,7 +8,7 @@
 //
 // dVLIntGDS.cpp: Encoding variable-length integers in GDS
 //
-// Copyright (C) 2016-2017    Xiuwen Zheng
+// Copyright (C) 2016-2019    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -24,6 +24,14 @@
 // You should have received a copy of the GNU Lesser General Public
 // License along with CoreArray.
 // If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef COREARRAY_NO_COMPILER_OPTIM_O3
+#if defined(__clang__)
+#pragma clang optimize on
+#elif defined(__GNUC__) && ((__GNUC__>4) || (__GNUC__==4 && __GNUC_MINOR__>=4))
+#pragma GCC optimize("O3")
+#endif
+#endif
 
 #include "dVLIntGDS.h"
 #include <typeinfo>
@@ -417,5 +425,27 @@ void CdVL_UInt::SetStreamPos(C_Int64 idx)
 			}
 		}
 		fCurStreamPosition = fAllocator.Position();
+	}
+}
+
+
+namespace CoreArray
+{
+	template<typename TClass> static CdObjRef *OnObjCreate()
+	{
+		return new TClass();
+	}
+
+	COREARRAY_DLL_LOCAL void RegisterClass_VLInt()
+	{
+		#define REG_CLASS(T, CLASS, CType, Desp)	\
+			dObjManager().AddClass(TdTraits< T >::StreamName(), \
+				OnObjCreate< CLASS >, CdObjClassMgr::CType, Desp)
+
+		// variable-length integers
+		REG_CLASS(TVL_Int, CdVL_Int, ctArray, "variable-length signed integer");
+		REG_CLASS(TVL_UInt, CdVL_UInt, ctArray, "variable-length unsigned integer");
+
+		#undef REG_CLASS
 	}
 }

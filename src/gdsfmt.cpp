@@ -8,7 +8,7 @@
 //
 // gdsfmt.cpp: R Interface to CoreArray Genomic Data Structure (GDS) Files
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2018    Xiuwen Zheng
 //
 // gdsfmt is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License Version 3 as
@@ -117,18 +117,20 @@ namespace gdsfmt
 
 			// ==============================================================
 			// Real number
-
 			ClassMap["float32"] = TdTraits< C_Float32 >::StreamName();
 			ClassMap["float64"] = TdTraits< C_Float64 >::StreamName();
-			ClassMap["packedreal8"]  = TdTraits< TREAL8  >::StreamName();
-			ClassMap["packedreal16"] = TdTraits< TREAL16 >::StreamName();
-			ClassMap["packedreal24"] = TdTraits< TREAL24 >::StreamName();
-			ClassMap["packedreal32"] = TdTraits< TREAL32 >::StreamName();
+			ClassMap["packedreal8"]   = TdTraits< TReal8  >::StreamName();
+			ClassMap["packedreal8u"]  = TdTraits< TReal8u >::StreamName();
+			ClassMap["packedreal16"]  = TdTraits< TReal16 >::StreamName();
+			ClassMap["packedreal16u"] = TdTraits< TReal16u >::StreamName();
+			ClassMap["packedreal24"]  = TdTraits< TReal24 >::StreamName();
+			ClassMap["packedreal24u"] = TdTraits< TReal24u >::StreamName();
+			ClassMap["packedreal32"]  = TdTraits< TReal32 >::StreamName();
+			ClassMap["packedreal32u"] = TdTraits< TReal32u >::StreamName();
 
 
 			// ==============================================================
 			// String
-
 			ClassMap["string"   ] = TdTraits< VARIABLE_LEN<C_UTF8>  >::StreamName();
 			ClassMap["string16" ] = TdTraits< VARIABLE_LEN<C_UTF16> >::StreamName();
 			ClassMap["string32" ] = TdTraits< VARIABLE_LEN<C_UTF32> >::StreamName();
@@ -142,7 +144,6 @@ namespace gdsfmt
 
 			// ==============================================================
 			// R storage mode
-
 			ClassMap["char"     ] = TdTraits< C_Int8  >::StreamName();
 			ClassMap["raw"      ] = TdTraits< C_Int8  >::StreamName();
 			ClassMap["int"      ] = TdTraits< C_Int32 >::StreamName();
@@ -150,6 +151,7 @@ namespace gdsfmt
 			ClassMap["vl_int"   ] = TdTraits< TVL_Int >::StreamName();
 			ClassMap["vl_uint"  ] = TdTraits< TVL_UInt >::StreamName();
 			ClassMap["float"    ] = TdTraits< C_Float32 >::StreamName();
+			ClassMap["single"   ] = TdTraits< C_Float32 >::StreamName();
 			ClassMap["numeric"  ] = TdTraits< C_Float64 >::StreamName();
 			ClassMap["double"   ] = TdTraits< C_Float64 >::StreamName();
 			ClassMap["character"] = TdTraits< VARIABLE_LEN<C_UTF8> >::StreamName();
@@ -180,6 +182,10 @@ static const char *ERR_READ_ONLY =
 	"Read-only and please call 'compression.gdsn(node, \"\")' before writing.";
 static const char *ERR_NO_DATA =
 	"There is no data field.";
+
+// predefined string
+static const UTF8String STR_INVISIBLE = "R.invisible";
+
 
 static SEXP mkStringUTF8(const char *s)
 {
@@ -416,7 +422,7 @@ COREARRAY_DLL_EXPORT SEXP gdsFileSize(SEXP gdsfile)
 **/
 COREARRAY_DLL_EXPORT SEXP gdsTidyUp(SEXP FileName, SEXP Verbose)
 {
-	const char *fn = CHAR(STRING_ELT(FileName, 0));
+	const char *fn = R_ExpandFileName(CHAR(STRING_ELT(FileName, 0)));
 
 	int verbose_flag = Rf_asLogical(Verbose);
 	if (verbose_flag == NA_LOGICAL)
@@ -775,7 +781,7 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeChildCnt(SEXP Node, SEXP Hidden)
 					if (Obj)
 					{
 						if (!Obj->GetHidden() &&
-							!Obj->Attribute().HasName(ASC16("R.invisible")))
+							!Obj->Attribute().HasName(STR_INVISIBLE))
 						{
 							Cnt ++;
 						}
@@ -797,7 +803,7 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeChildCnt(SEXP Node, SEXP Hidden)
 						if (Obj)
 						{
 							if (!Obj->GetHidden() &&
-								!Obj->Attribute().HasName(ASC16("R.invisible")))
+								!Obj->Attribute().HasName(STR_INVISIBLE))
 							{
 								Cnt ++;
 							}
@@ -837,15 +843,67 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeName(SEXP Node, SEXP FullName)
 }
 
 
+/// Enumerate the names of its child nodes (static)
+static void gds_ls_name(CdGDSAbsFolder *dir, bool recursive, bool hidden,
+	bool include_dir, string name, vector<string> &list)
+{
+	for (int i=0; i < dir->NodeCount(); i++)
+	{
+		CdGDSObj *obj = dir->ObjItemEx(i);
+		if (obj)
+		{
+			if (hidden)
+			{
+				CdGDSAbsFolder *dir_obj = dynamic_cast<CdGDSAbsFolder*>(obj);
+				string nm = RawText(obj->Name());
+				if (name != "") nm = name + "/" + nm;
+				if (include_dir || !dir_obj)
+					list.push_back(nm);
+				if (recursive && dir_obj)
+				{
+					gds_ls_name(dir_obj, recursive, hidden, include_dir,
+						nm, list);
+				}
+			} else {
+				if (!obj->GetHidden() &&
+					!obj->Attribute().HasName(STR_INVISIBLE))
+				{
+					CdGDSAbsFolder *dir_obj = dynamic_cast<CdGDSAbsFolder*>(obj);
+					string nm = RawText(obj->Name());
+					if (name != "") nm = name + "/" + nm;
+					if (include_dir || !dir_obj)
+						list.push_back(nm);
+					if (recursive && dir_obj)
+					{
+						gds_ls_name(dir_obj, recursive, hidden, include_dir,
+							nm, list);
+					}
+				}
+			}
+		}
+	}
+}
+
 /// Enumerate the names of its child nodes
 /** \param Node        [in] a GDS node
  *  \param Hidden      [in] whether include hidden variable(s)
+ *  \param Recursive   [in] whether recursively include the sub folder(s)
+ *  \param IncludeDir  [in] whether include the sub folder(s)
 **/
-COREARRAY_DLL_EXPORT SEXP gdsNodeEnumName(SEXP Node, SEXP Hidden)
+COREARRAY_DLL_EXPORT SEXP gdsNodeEnumName(SEXP Node, SEXP Hidden,
+	SEXP Recursive, SEXP IncludeDir)
 {
-	int include_hidden = Rf_asLogical(Hidden);
-	if (include_hidden == NA_LOGICAL)
+	int hidden = Rf_asLogical(Hidden);
+	if (hidden == NA_LOGICAL)
 		error("'include.hidden' must be TRUE or FALSE.");
+
+	int recursive = Rf_asLogical(Recursive);
+	if (recursive == NA_LOGICAL)
+		error("'recursive' must be TRUE or FALSE.");
+
+	int include_dir = Rf_asLogical(IncludeDir);
+	if (include_dir == NA_LOGICAL)
+		error("'include.dirs' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 
@@ -855,29 +913,11 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeEnumName(SEXP Node, SEXP Hidden)
 		if (Dir)
 		{
 			vector<string> List;
-			for (int i=0; i < Dir->NodeCount(); i++)
-			{
-				CdGDSObj *Obj = Dir->ObjItemEx(i);
-				if (Obj)
-				{
-					if (include_hidden)
-					{
-						List.push_back(RawText(Obj->Name()));
-					} else {
-						if (!Obj->GetHidden() &&
-							!Obj->Attribute().HasName(ASC16("R.invisible")))
-						{
-							List.push_back(RawText(Obj->Name()));
-						}
-					}
-				}
-			}
-
+			gds_ls_name(Dir, recursive, hidden, include_dir, "", List);
 			PROTECT(rv_ans = NEW_STRING(List.size()));
 			for (size_t i=0; i < List.size(); i++)
 			{
-				SET_STRING_ELT(rv_ans, i,
-					mkCharCE(List[i].c_str(), CE_UTF8));
+				SET_STRING_ELT(rv_ans, i, mkCharCE(List[i].c_str(), CE_UTF8));
 			}
 			UNPROTECT(1);
 		} else {
@@ -942,7 +982,7 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeIndex(SEXP Node, SEXP Path, SEXP Index,
 				} else if (Rf_isString(Index))
 				{
 					const char *nm = translateCharUTF8(STRING_ELT(Index, i));
-					Obj = Dir.ObjItemEx(UTF16Text(nm));
+					Obj = Dir.ObjItemEx(nm);
 					if (Obj == NULL)
 					{
 						string pn = RawText(Dir.FullName());
@@ -971,7 +1011,7 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeIndex(SEXP Node, SEXP Path, SEXP Index,
 
 			CdGDSAbsFolder &Dir = *((CdGDSAbsFolder*)Obj);
 			const char *nm = translateCharUTF8(STRING_ELT(Path, 0));
-			Obj = Dir.PathEx(UTF16Text(nm));
+			Obj = Dir.PathEx(nm);
 			if (!Obj && !silent_flag)
 				throw ErrGDSObj("No such GDS node \"%s\"!", nm);
 		}
@@ -1195,7 +1235,7 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeObjDesp(SEXP Node)
 
 			// 13: hidden
 			int hidden_flag = Obj->GetHidden() ||
-				Obj->Attribute().HasName(ASC16("R.invisible"));
+				Obj->Attribute().HasName(STR_INVISIBLE);
 			SET_ELEMENT(rv_ans, 12, ScalarLogical(hidden_flag));
 
 			// 14: message
@@ -1212,10 +1252,7 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeObjDesp(SEXP Node)
 
 			// 15: param
 			tmp = R_NilValue;
-			if (dynamic_cast<CdPackedReal8*>(Obj) ||
-				dynamic_cast<CdPackedReal16*>(Obj) ||
-				dynamic_cast<CdPackedReal24*>(Obj) ||
-				dynamic_cast<CdPackedReal32*>(Obj))
+			if (IsPackedReal(Obj))
 			{
 				PROTECT(tmp = NEW_LIST(2));
 				SEXP nm = PROTECT(NEW_STRING(2));
@@ -1229,9 +1266,19 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeObjDesp(SEXP Node)
 					CdPackedReal8 *v = static_cast<CdPackedReal8*>(Obj);
 					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
 					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
+				} else if (dynamic_cast<CdPackedReal8U*>(Obj))
+				{
+					CdPackedReal8U *v = static_cast<CdPackedReal8U*>(Obj);
+					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
+					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
 				} else if (dynamic_cast<CdPackedReal16*>(Obj))
 				{
 					CdPackedReal16 *v = static_cast<CdPackedReal16*>(Obj);
+					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
+					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
+				} else if (dynamic_cast<CdPackedReal16U*>(Obj))
+				{
+					CdPackedReal16U *v = static_cast<CdPackedReal16U*>(Obj);
 					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
 					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
 				} else if (dynamic_cast<CdPackedReal24*>(Obj))
@@ -1239,8 +1286,18 @@ COREARRAY_DLL_EXPORT SEXP gdsNodeObjDesp(SEXP Node)
 					CdPackedReal24 *v = static_cast<CdPackedReal24*>(Obj);
 					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
 					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
-				} else {
+				} else if (dynamic_cast<CdPackedReal24U*>(Obj))
+				{
+					CdPackedReal24U *v = static_cast<CdPackedReal24U*>(Obj);
+					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
+					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
+				} else if (dynamic_cast<CdPackedReal32*>(Obj))
+				{
 					CdPackedReal32 *v = static_cast<CdPackedReal32*>(Obj);
+					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
+					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
+				} else {
+					CdPackedReal32U *v = static_cast<CdPackedReal32U*>(Obj);
 					SET_ELEMENT(tmp, 0, ScalarReal(v->Offset()));
 					SET_ELEMENT(tmp, 1, ScalarReal(v->Scale()));
 				}
@@ -1303,10 +1360,14 @@ COREARRAY_DLL_EXPORT SEXP gdsAddNode(SEXP Node, SEXP NodeName, SEXP Val,
 	};
 	static const char *PackedReal[] =
 	{
-		TdTraits< TREAL8  >::StreamName(),
-		TdTraits< TREAL16 >::StreamName(),
-		TdTraits< TREAL24 >::StreamName(),
-		TdTraits< TREAL32 >::StreamName(),
+		TdTraits< TReal8  >::StreamName(),
+		TdTraits< TReal8u >::StreamName(),
+		TdTraits< TReal16 >::StreamName(),
+		TdTraits< TReal16u >::StreamName(),
+		TdTraits< TReal24 >::StreamName(),
+		TdTraits< TReal24u >::StreamName(),
+		TdTraits< TReal32 >::StreamName(),
+		TdTraits< TReal32u >::StreamName(),
 		NULL
 	};
 
@@ -1382,7 +1443,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddNode(SEXP Node, SEXP NodeName, SEXP Val,
 
 		if (Rf_asLogical(Replace) == TRUE)
 		{
-			CdGDSObj *tmp = Dir.ObjItemEx(UTF16Text(nm));
+			CdGDSObj *tmp = Dir.ObjItemEx(nm);
 			if (tmp)
 			{
 				IdxReplace = Dir.IndexObj(tmp);
@@ -1421,7 +1482,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddNode(SEXP Node, SEXP NodeName, SEXP Val,
 		if (rv_obj == NULL)
 			throw ErrGDSFmt("No support of the storage mode '%s'.", stm);
 
-		Dir.InsertObj(IdxReplace, UTF16Text(nm), rv_obj);
+		Dir.InsertObj(IdxReplace, nm, rv_obj);
 
 		// hidden flag
 		if (Rf_asLogical(Visible) != TRUE)
@@ -1430,7 +1491,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddNode(SEXP Node, SEXP NodeName, SEXP Val,
 			// only available for >= gdsfmt_1.5.16
 			rv_obj->SetHidden(true);
 			// only 'R.invisible' can be recognized by all versions of gdsfmt
-			rv_obj->Attribute().Add(ASC16("R.invisible"));
+			rv_obj->Attribute().Add(STR_INVISIBLE);
 		}
 
 		// data compression mode
@@ -1491,9 +1552,23 @@ COREARRAY_DLL_EXPORT SEXP gdsAddNode(SEXP Node, SEXP NodeName, SEXP Val,
 					obj->SetOffset(FixedReal_Offset);
 				if (R_FINITE(FixedReal_Scale))
 					obj->SetScale(FixedReal_Scale);
+			} else if (dynamic_cast<CdPackedReal8U*>(rv_obj))
+			{
+				CdPackedReal8U *obj = static_cast<CdPackedReal8U*>(rv_obj);
+				if (R_FINITE(FixedReal_Offset))
+					obj->SetOffset(FixedReal_Offset);
+				if (R_FINITE(FixedReal_Scale))
+					obj->SetScale(FixedReal_Scale);
 			} else if (dynamic_cast<CdPackedReal16*>(rv_obj))
 			{
 				CdPackedReal16 *obj = static_cast<CdPackedReal16*>(rv_obj);
+				if (R_FINITE(FixedReal_Offset))
+					obj->SetOffset(FixedReal_Offset);
+				if (R_FINITE(FixedReal_Scale))
+					obj->SetScale(FixedReal_Scale);
+			} else if (dynamic_cast<CdPackedReal16U*>(rv_obj))
+			{
+				CdPackedReal16U *obj = static_cast<CdPackedReal16U*>(rv_obj);
 				if (R_FINITE(FixedReal_Offset))
 					obj->SetOffset(FixedReal_Offset);
 				if (R_FINITE(FixedReal_Scale))
@@ -1505,9 +1580,23 @@ COREARRAY_DLL_EXPORT SEXP gdsAddNode(SEXP Node, SEXP NodeName, SEXP Val,
 					obj->SetOffset(FixedReal_Offset);
 				if (R_FINITE(FixedReal_Scale))
 					obj->SetScale(FixedReal_Scale);
+			} else if (dynamic_cast<CdPackedReal24U*>(rv_obj))
+			{
+				CdPackedReal24U *obj = static_cast<CdPackedReal24U*>(rv_obj);
+				if (R_FINITE(FixedReal_Offset))
+					obj->SetOffset(FixedReal_Offset);
+				if (R_FINITE(FixedReal_Scale))
+					obj->SetScale(FixedReal_Scale);
 			} else if (dynamic_cast<CdPackedReal32*>(rv_obj))
 			{
 				CdPackedReal32 *obj = static_cast<CdPackedReal32*>(rv_obj);
+				if (R_FINITE(FixedReal_Offset))
+					obj->SetOffset(FixedReal_Offset);
+				if (R_FINITE(FixedReal_Scale))
+					obj->SetScale(FixedReal_Scale);
+			} else if (dynamic_cast<CdPackedReal32U*>(rv_obj))
+			{
+				CdPackedReal32U *obj = static_cast<CdPackedReal32U*>(rv_obj);
 				if (R_FINITE(FixedReal_Offset))
 					obj->SetOffset(FixedReal_Offset);
 				if (R_FINITE(FixedReal_Scale))
@@ -1577,7 +1666,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddFolder(SEXP Node, SEXP NodeName, SEXP Type,
 		int IdxReplace = -1;
 		if (replace_flag)
 		{
-			CdGDSObj *tmp = Dir.ObjItemEx(UTF16Text(nm));
+			CdGDSObj *tmp = Dir.ObjItemEx(nm);
 			if (tmp)
 			{
 				IdxReplace = Dir.IndexObj(tmp);
@@ -1588,11 +1677,11 @@ COREARRAY_DLL_EXPORT SEXP gdsAddFolder(SEXP Node, SEXP NodeName, SEXP Type,
 		PdGDSObj vObj = NULL;
 		if (strcmp(tp, "directory") == 0)
 		{
-			vObj = Dir.AddFolder(UTF16Text(nm));
+			vObj = Dir.AddFolder(nm);
 		} else if (strcmp(tp, "virtual") == 0)
 		{
 			CdGDSVirtualFolder *F = new CdGDSVirtualFolder;
-			Dir.InsertObj(IdxReplace, UTF16Text(nm), F);
+			Dir.InsertObj(IdxReplace, nm, F);
 			F->SetLinkFile(UTF8Text(fn));
 			vObj = F;
 		} else
@@ -1605,7 +1694,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddFolder(SEXP Node, SEXP NodeName, SEXP Type,
 			// only available for >= gdsfmt_1.5.16
 			vObj->SetHidden(true);
 			// only 'R.invisible' can be recognized by all versions of gdsfmt
-			vObj->Attribute().Add(ASC16("R.invisible"));
+			vObj->Attribute().Add(STR_INVISIBLE);
 		}
 
 		rv_ans = GDS_R_Obj2SEXP(vObj);
@@ -1643,7 +1732,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddFile(SEXP Node, SEXP NodeName, SEXP FileName,
 		int IdxReplace = -1;
 		if (replace_flag)
 		{
-			CdGDSObj *tmp = Dir.ObjItemEx(UTF16Text(nm));
+			CdGDSObj *tmp = Dir.ObjItemEx(nm);
 			if (tmp)
 			{
 				IdxReplace = Dir.IndexObj(tmp);
@@ -1655,7 +1744,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddFile(SEXP Node, SEXP NodeName, SEXP FileName,
 			new CdFileStream(fn, CdFileStream::fmOpenRead)));
 		CdGDSStreamContainer *vObj = new CdGDSStreamContainer();
 		vObj->SetPackedMode(cp);
-		Dir.InsertObj(IdxReplace, UTF16Text(nm), vObj);
+		Dir.InsertObj(IdxReplace, nm, vObj);
 		vObj->CopyFromBuf(*file.get());
 		vObj->CloseWriter();
 
@@ -1666,7 +1755,7 @@ COREARRAY_DLL_EXPORT SEXP gdsAddFile(SEXP Node, SEXP NodeName, SEXP FileName,
 			// only available for >= gdsfmt_1.5.16
 			vObj->SetHidden(true);
 			// only 'R.invisible' can be recognized by all versions of gdsfmt
-			vObj->Attribute().Add(ASC16("R.invisible"));
+			vObj->Attribute().Add(STR_INVISIBLE);
 		}
 
 		rv_ans = GDS_R_Obj2SEXP(vObj);
@@ -1725,7 +1814,7 @@ COREARRAY_DLL_EXPORT SEXP gdsRenameNode(SEXP Node, SEXP NewName)
 
 	COREARRAY_TRY
 		PdGDSObj Obj = GDS_R_SEXP2Obj(Node, FALSE);
-		Obj->SetName(UTF16Text(nm));
+		Obj->SetName(nm);
 	COREARRAY_CATCH
 }
 
@@ -1826,18 +1915,18 @@ COREARRAY_DLL_EXPORT SEXP gdsPutAttr(SEXP Node, SEXP Name, SEXP Val)
 	if (!Rf_isNull(Val) && !Rf_isInteger(Val) && !Rf_isReal(Val) &&
 			!Rf_isString(Val) && !Rf_isLogical(Val))
 		error("Unsupported type!");
-	if (!Rf_isNull(Val) && (Rf_length(Val) <= 0))
-		error("The length of values should be > 0.");
 
 	COREARRAY_TRY
 
 		PdGDSObj Obj = GDS_R_SEXP2Obj(Node, FALSE);
 
 		CdAny *p;
-		if (Obj->Attribute().HasName(UTF16Text(nm)))
-			p = &(Obj->Attribute()[UTF16Text(nm)]);
-		else
-			p = &(Obj->Attribute().Add(UTF16Text(nm)));
+		if (Obj->Attribute().HasName(nm))
+		{
+			p = &(Obj->Attribute()[nm]);
+			Obj->Attribute().Changed();
+		} else
+			p = &(Obj->Attribute().Add(nm));
 
 		if (Rf_isInteger(Val))
 		{
@@ -1915,7 +2004,7 @@ COREARRAY_DLL_EXPORT SEXP gdsDeleteAttr(SEXP Node, SEXP Name)
 		for (size_t i=0; i < num; i++)
 		{
 			const char *nm = translateCharUTF8(STRING_ELT(Name, i));
-			Obj->Attribute().Delete(UTF16Text(nm));
+			Obj->Attribute().Delete(nm);
 		}
 	COREARRAY_CATCH
 }
@@ -2920,7 +3009,7 @@ COREARRAY_DLL_EXPORT SEXP gdsMoveTo(SEXP Node, SEXP LocNode, SEXP RelPos)
 						GDS_R_Obj_SEXP2SEXP(LocNode, Node);
 					} else if (strcmp(S, "replace+rename") == 0)
 					{
-						UTF16String nm = LObj->Name();
+						UTF8String nm = LObj->Name();
 						GDS_Node_Delete(LObj, TRUE);
 						Obj->SetName(nm);
 						GDS_R_Obj_SEXP2SEXP(LocNode, Node);
@@ -2968,7 +3057,7 @@ COREARRAY_DLL_EXPORT SEXP gdsCopyTo(SEXP Node, SEXP Name, SEXP Source)
 				}
 			}
 			CdGDSAbsFolder *Folder = static_cast<CdGDSAbsFolder*>(Obj);
-			UTF16String s = UTF16Text(nm);
+			UTF8String s = nm;
 			if (Folder->ObjItemEx(s) == NULL)
 			{
 				CdGDSObj *obj = Folder->AddObj(s, SObj->NewObject());
@@ -3086,17 +3175,20 @@ COREARRAY_DLL_EXPORT SEXP gdsSystem()
 
 		// Compression encoder
 		int n = dStreamPipeMgr.RegList().size();
-		SEXP Encoder = PROTECT(NEW_CHARACTER(2*n));
+		SEXP Encoder = PROTECT(NEW_CHARACTER(4*n));
 		nProtect ++;
 		SET_ELEMENT(rv_ans, 6, Encoder);
 		SET_STRING_ELT(nm, 6, mkChar("compression.encoder"));
 		for (int i=0; i < n; i++)
 		{
 			const CdPipeMgrItem *p = dStreamPipeMgr.RegList()[i];
-			SET_STRING_ELT(Encoder, 2*i+0, mkChar(p->Coder()));
-			SET_STRING_ELT(Encoder, 2*i+1, mkChar(p->Description()));
+			SET_STRING_ELT(Encoder, 4*i+0, mkChar(p->Coder()));
+			SET_STRING_ELT(Encoder, 4*i+1, mkChar(p->Description()));
+			string s = p->CoderOptString();
+			SET_STRING_ELT(Encoder, 4*i+2, mkChar(s.c_str()));
+			s = p->ExtOptString();
+			SET_STRING_ELT(Encoder, 4*i+3, mkChar(s.c_str()));
 		}	
-
 
 		// compiler flags
 		vector<string> ss;
@@ -3126,6 +3218,9 @@ COREARRAY_DLL_EXPORT SEXP gdsSystem()
 	#endif
 	#ifdef COREARRAY_SIMD_FMA4
 		ss.push_back("FMA4");
+	#endif
+	#ifdef COREARRAY_POPCNT
+		ss.push_back("POPCNT");
 	#endif
 		SEXP SIMD = PROTECT(NEW_CHARACTER(ss.size()));
 		nProtect ++;
@@ -3488,7 +3583,7 @@ COREARRAY_DLL_EXPORT SEXP gdsApplyCall(SEXP gds_nodes, SEXP margins,
 				} else {
 					throw ErrGDSFmt(
 						"'target.node[[%d]]' should be array-oriented!",
-						(int)i);
+						(int)i + 1);
 				}
 			}
 		}
@@ -4012,7 +4107,7 @@ COREARRAY_DLL_LOCAL void R_Init_RegCallMethods(DllInfo *info)
 		CALL(gdsFileSize, 1),
 
 		CALL(gdsNodeChildCnt, 2),       CALL(gdsNodeName, 2),
-		CALL(gdsRenameNode, 2),         CALL(gdsNodeEnumName, 2),
+		CALL(gdsRenameNode, 2),         CALL(gdsNodeEnumName, 4),
 		CALL(gdsNodeIndex, 4),          CALL(gdsGetFolder, 1),
 		CALL(gdsNodeObjDesp, 1),
 		CALL(gdsAddNode, 11),           CALL(gdsAddFolder, 6),

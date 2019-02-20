@@ -8,7 +8,7 @@
 //
 // CoreDEF.h: CoreArray library global macro
 //
-// Copyright (C) 2007-2017    Xiuwen Zheng
+// Copyright (C) 2007-2019    Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -27,9 +27,9 @@
 
 /**
  *	\file     CoreDEF.h
- *	\author   Xiuwen Zheng [zhengx@u.washington.edu]
+ *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
  *	\version  1.0
- *	\date     2007 - 2017
+ *	\date     2007 - 2019
  *	\brief    CoreArray library global macro
  *	\details
 **/
@@ -65,6 +65,9 @@
  *
  *  \subsection compression COREARRAY_USE_LZMA_EXT
  *  If defined, uses the liblzma head file in the default path (e.g., the include path in the operating system)
+ *
+ *  \subsection compression COREARRAY_NO_COMPILER_OPTIM_O3
+ *  If defined, does not include #pragma GCC optimize("O3") or similar
  *
 **/
 
@@ -687,6 +690,38 @@
 #   endif
 #endif
 
+
+
+// ===========================================================================
+// C++ Version
+// ===========================================================================
+
+#ifdef __cplusplus
+#   define COREARRAY_CPP
+#   if __cplusplus >= 201103L
+#       define COREARRAY_CPP_V11
+#   endif
+#   if __cplusplus >= 201402L
+#       define COREARRAY_CPP_V14
+#   endif
+#   if __cplusplus > 201402L
+#       define COREARRAY_CPP_V17
+#   endif
+#endif
+
+
+
+// ===========================================================================
+// Noexcept Specifier
+// ===========================================================================
+
+#ifdef COREARRAY_CPP_V11
+#   define COREARRAY_NOEXCEPT_TRUE     noexcept(true)
+#   define COREARRAY_NOEXCEPT_FALSE    noexcept(false)
+#else
+#   define COREARRAY_NOEXCEPT_TRUE
+#   define COREARRAY_NOEXCEPT_FALSE
+#endif
 
 
 

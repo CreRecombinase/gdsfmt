@@ -19,13 +19,13 @@ This package provides a high-level R interface to CoreArray Genomic Data Structu
 
 ## Bioconductor:
 
-Release Version: v1.12.0
+Release Version: v1.18.1
 
 [http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html](http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html)
 
 [Help Documents](http://zhengxwen.github.io/gdsfmt/release/help/00Index.html)
 
-Development Version: v1.13.0
+Development Version: v1.19.9
 
 [http://www.bioconductor.org/packages/devel/bioc/html/gdsfmt.html](http://www.bioconductor.org/packages/devel/bioc/html/gdsfmt.html)
 
@@ -48,7 +48,7 @@ Zheng X, Gogarten S, Lawrence M, Stilp A, Conomos M, Weir BS, Laurie C, Levine D
 
 ## Package Maintainer
 
-Dr. Xiuwen Zheng ([zhengx@u.washington.edu](zhengx@u.washington.edu))
+Dr. Xiuwen Zheng ([zhengxwen@gmail.com](zhengxwen@gmail.com))
 
 
 ## URL
@@ -62,8 +62,9 @@ Dr. Xiuwen Zheng ([zhengx@u.washington.edu](zhengx@u.washington.edu))
 
 * Bioconductor repository:
 ```R
-source("http://bioconductor.org/biocLite.R")
-biocLite("gdsfmt")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("gdsfmt")
 ```
 
 * Development version from Github:
@@ -91,8 +92,9 @@ install.packages("getopt", repos="http://cran.r-project.org")
 install.packages("optparse", repos="http://cran.r-project.org")
 install.packages("crayon", repos="http://cran.r-project.org")
 
-source("http://bioconductor.org/biocLite.R")
-biocLite("gdsfmt")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("gdsfmt")
 ```
 
 [See More...](https://github.com/zhengxwen/Documents/tree/master/Program)
@@ -194,4 +196,4 @@ File: test.gds (1.1K)
 
 [pygds](https://github.com/CoreArray/pygds): Python interface to CoreArray Genomic Data Structure (GDS) files
 
-[jugds](https://github.com/CoreArray/jugds.jl): Julia interface to CoreArray Genomic Data Structure (GDS) files
+[jugds.jl](https://github.com/CoreArray/jugds.jl): Julia interface to CoreArray Genomic Data Structure (GDS) files
